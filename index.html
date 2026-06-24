@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SwiftScribe — Data Entry, Copywriting & Transcription</title>
+<script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --teal: #1D9E75; --teal-light: #E1F5EE; --teal-dark: #0F6E56; --teal-mid: #5DCAA5;
+    --bg: #FAFAF8; --bg-card: #FFFFFF; --bg-secondary: #F4F2EC;
+    --text: #1A1A18; --text-muted: #6B6B65; --text-hint: #9C9C96;
+    --border: rgba(0,0,0,0.09); --border-mid: rgba(0,0,0,0.14);
+    --radius: 10px; --radius-lg: 14px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.6; }
+
+  /* NAV */
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(250,250,248,0.92); backdrop-filter: blur(12px); border-bottom: 0.5px solid var(--border); }
+  .nav-inner { max-width: 1100px; margin: 0 auto; padding: 0 2rem; height: 60px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { font-size: 18px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; text-decoration: none; }
+  .logo span { color: var(--teal); }
+  .nav-links { display: flex; align-items: center; gap: 0.25rem; }
+  .nav-links a { font-size: 14px; color: var(--text-muted); text-decoration: none; padding: 6px 14px; border-radius: 8px; transition: all 0.15s; cursor: pointer; }
+  .nav-links a:hover, .nav-links a.active { color: var(--text); background: var(--bg-secondary); }
+  .nav-cta { background: var(--teal) !important; color: white !important; font-weight: 500; }
+  .nav-cta:hover { background: var(--teal-dark) !important; }
+  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; }
+  .hamburger span { width: 22px; height: 2px; background: var(--text); border-radius: 2px; transition: all 0.2s; }
+
+  /* PAGES */
+  .page { display: none; padding-top: 60px; min-height: 100vh; }
+  .page.active { display: block; }
+
+  /* HERO */
+  .hero { max-width: 1100px; margin: 0 auto; padding: 6rem 2rem 4rem; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+  .hero-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--teal-dark); background: var(--teal-light); padding: 5px 12px; border-radius: 20px; margin-bottom: 1.5rem; font-weight: 500; }
+  .hero-badge .dot { width: 6px; height: 6px; background: var(--teal); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
+  h1 { font-size: 46px; font-weight: 700; line-height: 1.15; letter-spacing: -1.5px; color: var(--text); margin-bottom: 1.25rem; }
+  h1 em { font-style: normal; color: var(--teal); }
+  .hero-sub { font-size: 17px; color: var(--text-muted); line-height: 1.7; margin-bottom: 2rem; max-width: 440px; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: var(--radius); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; border: none; text-decoration: none; }
+  .btn-green { background: var(--teal); color: white; }
+  .btn-green:hover { background: var(--teal-dark); transform: translateY(-1px); }
+  .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border-mid); }
+  .btn-outline:hover { background: var(--bg-secondary); }
+  .hero-visual { position: relative; }
+  .hero-card { background: var(--bg-card); border-radius: var(--radius-lg); border: 0.5px solid var(--border); padding: 1.5rem; box-shadow: var(--shadow); margin-bottom: 12px; }
+  .hero-card-row { display: flex; align-items: center; gap: 12px; }
+  .hero-card-icon { width: 38px; height: 38px; border-radius: 10px; background: var(--teal-light); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .hero-card-text h4 { font-size: 14px; font-weight: 600; color: var(--text); }
+  .hero-card-text p { font-size: 12px; color: var(--text-muted); }
+  .hero-card-badge { margin-left: auto; font-size: 11px; padding: 3px 10px; border-radius: 12px; font-weight: 500; }
+  .badge-done { background: #E1F5EE; color: #0F6E56; }
+  .badge-progress { background: #FFF3CD; color: #856404; }
+  .badge-new { background: #E8F4FD; color: #0C5460; }
+
+  /* STATS */
+  .stats { background: var(--text); }
+  .stats-inner { max-width: 1100px; margin: 0 auto; padding: 3rem 2rem; display: grid; grid-template-columns: repeat(4,1fr); gap: 2rem; }
+  .stat { text-align: center; }
+  .stat-num { font-size: 36px; font-weight: 700; color: white; letter-spacing: -1px; }
+  .stat-num span { color: var(--teal-mid); }
+  .stat-label { font-size: 13px; color: rgba(255,255,255,0.55); margin-top: 4px; }
+
+  /* SECTIONS */
+  section { max-width: 1100px; margin: 0 auto; padding: 5rem 2rem; }
+  .section-eyebrow { font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--teal); font-weight: 600; margin-bottom: 0.75rem; }
+  .section-title { font-size: 32px; font-weight: 700; letter-spacing: -0.75px; color: var(--text); margin-bottom: 0.75rem; }
+  .section-sub { font-size: 16px; color: var(--text-muted); max-width: 520px; line-height: 1.7; }
+  .section-head { margin-bottom: 3rem; }
+
+  /* SERVICES GRID */
+  .services-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; }
+  .service-card { background: var(--bg-card); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; transition: all 0.2s; position: relative; overflow: hidden; }
+  .service-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--teal); transform: scaleX(0); transition: transform 0.3s; transform-origin: left; }
+  .service-card:hover::before { transform: scaleX(1); }
+  .service-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+  .service-icon { width: 48px; height: 48px; border-radius: 12px; background: var(--teal-light); display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 1.25rem; }
+  .service-card h3 { font-size: 17px; font-weight: 600; margin-bottom: 0.5rem; }
+  .service-card p { font-size: 14px; color: var(--text-muted); line-height: 1.7; margin-bottom: 1.25rem; }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { font-size: 11px; background: var(--bg-secondary); color: var(--text-muted); padding: 4px 10px; border-radius: 20px; }
+
+  /* PRICING */
+  #pricing-page { background: var(--bg); }
+  .pricing-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; }
+  .price-card { background: var(--bg-card); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; position: relative; transition: all 0.2s; }
+  .price-card.featured { border-color: var(--teal); border-width: 2px; }
+  .popular-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--teal); color: white; font-size: 11px; font-weight: 600; padding: 4px 16px; border-radius: 20px; white-space: nowrap; }
+  .price-tier { font-size: 13px; font-weight: 600; color: var(--teal); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; }
+  .price-amount { font-size: 42px; font-weight: 700; letter-spacing: -1.5px; color: var(--text); }
+  .price-amount sup { font-size: 20px; font-weight: 500; vertical-align: super; letter-spacing: 0; }
+  .price-period { font-size: 13px; color: var(--text-muted); margin-bottom: 1.5rem; }
+  .price-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.6; border-bottom: 0.5px solid var(--border); padding-bottom: 1.5rem; }
+  .feature-list { list-style: none; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 10px; }
+  .feature-list li { font-size: 14px; color: var(--text-muted); display: flex; align-items: flex-start; gap: 8px; }
+  .feature-list li::before { content: '✓'; color: var(--teal); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+  /* PAYMENT TABS */
+  .payment-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+  .pay-tab { flex: 1; padding: 8px 4px; font-size: 12px; font-weight: 500; border-radius: 8px; border: 1px solid var(--border-mid); background: var(--bg); color: var(--text-muted); cursor: pointer; text-align: center; transition: all 0.15s; }
+  .pay-tab.active { background: var(--teal); color: white; border-color: var(--teal); }
+  .pay-panel { display: none; }
+  .pay-panel.active { display: block; }
+
+  /* MPESA */
+  .mpesa-box { background: #e7f5e9; border: 1px solid #b2dfb5; border-radius: 10px; padding: 1rem; text-align: center; }
+  .mpesa-logo { font-size: 18px; font-weight: 800; color: #2e7d32; letter-spacing: -1px; margin-bottom: 2px; }
+  .mpesa-till { font-size: 26px; font-weight: 700; color: #1b5e20; letter-spacing: 2px; margin: 4px 0; }
+  .mpesa-label { font-size: 10px; color: #388e3c; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+  .mpesa-steps { font-size: 11px; color: #2e7d32; text-align: left; margin-top: 8px; line-height: 1.9; }
+
+  /* PROOF & INVOICE BUTTONS */
+  .proof-btn { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px; border-radius: var(--radius); font-size: 12px; font-weight: 500; cursor: pointer; border: none; margin-top: 6px; transition: all 0.15s; }
+  .proof-wa { background: #25D366; color: white; }
+  .proof-wa:hover { background: #1ebe5d; }
+  .proof-email { background: var(--bg-secondary); color: var(--text); border: 1px solid var(--border-mid); }
+  .proof-email:hover { background: #e4e2dc; }
+  .invoice-btn { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px; border-radius: var(--radius); font-size: 12px; font-weight: 500; cursor: pointer; background: var(--teal-light); color: var(--teal-dark); border: 1px solid rgba(29,158,117,0.25); margin-top: 6px; transition: all 0.15s; }
+  .invoice-btn:hover { background: #c5eddf; }
+  #paypal-starter, #paypal-pro, #paypal-enterprise { min-height: 44px; }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 500; align-items: center; justify-content: center; padding: 1rem; }
+  .modal-overlay.open { display: flex; }
+  .modal-box { background: white; border-radius: 16px; padding: 2rem; max-width: 420px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+  .modal-box h3 { font-size: 17px; font-weight: 600; margin-bottom: 0.4rem; }
+  .modal-box p { font-size: 13px; color: var(--text-muted); margin-bottom: 1.25rem; line-height: 1.6; }
+  .modal-input { width: 100%; padding: 10px 13px; border: 1px solid var(--border-mid); border-radius: var(--radius); font-size: 13px; margin-bottom: 10px; font-family: inherit; }
+  .modal-input:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(29,158,117,0.1); }
+  .modal-row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+  .modal-cancel { padding: 9px 18px; border-radius: var(--radius); border: 1px solid var(--border-mid); background: transparent; font-size: 13px; cursor: pointer; }
+  .modal-submit { padding: 9px 18px; border-radius: var(--radius); border: none; background: var(--teal); color: white; font-size: 13px; font-weight: 500; cursor: pointer; }
+  .modal-submit:hover { background: var(--teal-dark); }
+
+  /* PORTFOLIO */
+  .portfolio-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 2.5rem; }
+  .filter-btn { font-size: 13px; padding: 7px 16px; border-radius: 20px; border: 0.5px solid var(--border-mid); background: transparent; color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
+  .filter-btn.active, .filter-btn:hover { background: var(--teal); color: white; border-color: var(--teal); }
+  .portfolio-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.25rem; }
+  .portfolio-item { background: var(--bg-card); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; transition: all 0.2s; cursor: pointer; }
+  .portfolio-item:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+  .portfolio-thumb { height: 160px; display: flex; align-items: center; justify-content: center; font-size: 40px; }
+  .thumb-data { background: linear-gradient(135deg, #E1F5EE 0%, #9FE1CB 100%); }
+  .thumb-copy { background: linear-gradient(135deg, #EAF3DE 0%, #C0DD97 100%); }
+  .thumb-transcript { background: linear-gradient(135deg, #E6F1FB 0%, #B5D4F4 100%); }
+  .portfolio-info { padding: 1.25rem; }
+  .portfolio-category { font-size: 11px; font-weight: 600; color: var(--teal); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .portfolio-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .portfolio-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+  /* CONTACT */
+  .contact-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 4rem; align-items: start; }
+  .contact-info h3 { font-size: 20px; font-weight: 600; margin-bottom: 0.75rem; }
+  .contact-info p { font-size: 14px; color: var(--text-muted); line-height: 1.7; margin-bottom: 2rem; }
+  .contact-detail { display: flex; align-items: center; gap: 12px; margin-bottom: 1rem; }
+  .contact-icon { width: 38px; height: 38px; background: var(--teal-light); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .contact-detail-text { font-size: 14px; }
+  .contact-detail-label { font-size: 11px; color: var(--text-hint); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+  .contact-form { background: var(--bg-card); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+  .form-group { margin-bottom: 1rem; }
+  .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+  .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 11px 14px; border: 0.5px solid var(--border-mid); border-radius: var(--radius); font-size: 14px; color: var(--text); background: var(--bg); transition: border-color 0.15s; font-family: inherit; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(29,158,117,0.1); }
+  .form-group textarea { height: 120px; resize: vertical; }
+  .form-success { display: none; text-align: center; padding: 2rem; }
+  .form-success .check { font-size: 48px; margin-bottom: 1rem; }
+  .form-success h3 { font-size: 18px; font-weight: 600; margin-bottom: 0.5rem; }
+  .form-success p { font-size: 14px; color: var(--text-muted); }
+
+  /* FOOTER */
+  footer { background: var(--text); color: white; }
+  .footer-inner { max-width: 1100px; margin: 0 auto; padding: 4rem 2rem 2rem; }
+  .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
+  .footer-brand .logo { color: white; font-size: 20px; }
+  .footer-brand .logo span { color: var(--teal-mid); }
+  .footer-brand p { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 0.75rem; line-height: 1.7; max-width: 260px; }
+  .footer-col h4 { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.8); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px; }
+  .footer-col a { display: block; font-size: 13px; color: rgba(255,255,255,0.45); text-decoration: none; margin-bottom: 8px; cursor: pointer; transition: color 0.15s; }
+  .footer-col a:hover { color: rgba(255,255,255,0.85); }
+  .footer-bottom { border-top: 0.5px solid rgba(255,255,255,0.1); padding-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+  .footer-bottom p { font-size: 12px; color: rgba(255,255,255,0.35); }
+  .social-row { display: flex; gap: 12px; }
+  .social-btn { width: 34px; height: 34px; border-radius: 8px; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; transition: background 0.15s; text-decoration: none; color: rgba(255,255,255,0.6); }
+  .social-btn:hover { background: rgba(255,255,255,0.15); color: white; }
+
+  /* MOBILE NAV */
+  .mobile-menu { display: none; flex-direction: column; background: var(--bg); border-top: 0.5px solid var(--border); padding: 1rem 2rem; gap: 4px; }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu a { font-size: 15px; color: var(--text-muted); text-decoration: none; padding: 10px 0; border-bottom: 0.5px solid var(--border); cursor: pointer; }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; gap: 2rem; }
+    .hero-visual { display: none; }
+    .services-grid, .pricing-grid, .portfolio-grid { grid-template-columns: 1fr; }
+    .contact-grid { grid-template-columns: 1fr; }
+    .stats-inner { grid-template-columns: repeat(2,1fr); }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+    h1 { font-size: 34px; }
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
+  }
+  @media (max-width: 540px) {
+    .form-row { grid-template-columns: 1fr; }
+    .footer-grid { grid-template-columns: 1fr; }
+    .stats-inner { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a class="logo" onclick="showPage('home')">Swift<span>Scribe</span></a>
+    <div class="nav-links">
+      <a onclick="showPage('home')" class="active" id="nav-home">Home</a>
+      <a onclick="showPage('pricing')" id="nav-pricing">Services & Pricing</a>
+      <a onclick="showPage('portfolio')" id="nav-portfolio">Portfolio</a>
+      <a onclick="showPage('contact')" id="nav-contact">Contact</a>
+      <a onclick="showPage('contact')" class="nav-cta btn">Get a Quote</a>
+    </div>
+    <div class="hamburger" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+  <div class="mobile-menu" id="mobile-menu">
+    <a onclick="showPage('home');toggleMenu()">Home</a>
+    <a onclick="showPage('pricing');toggleMenu()">Services & Pricing</a>
+    <a onclick="showPage('portfolio');toggleMenu()">Portfolio</a>
+    <a onclick="showPage('contact');toggleMenu()">Contact</a>
+  </div>
+</nav>
+
+<!-- HOME PAGE -->
+<div class="page active" id="home-page">
+  <div class="hero">
+    <div class="hero-text">
+      <div class="hero-badge"><div class="dot"></div> Now accepting new clients</div>
+      <h1>Your data, words &amp; audio<br><em>handled perfectly</em></h1>
+      <p class="hero-sub">SwiftScribe delivers fast, accurate data entry, compelling copywriting, and clean transcription — so you can focus on growing your business.</p>
+      <div class="btn-row">
+        <button class="btn btn-green" onclick="showPage('pricing')">View pricing →</button>
+        <button class="btn btn-outline" onclick="showPage('contact')">Get a free quote</button>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-card" id="hc1">
+        <div class="hero-card-row">
+          <div class="hero-card-icon">📋</div>
+          <div class="hero-card-text"><h4>Product catalog — 2,400 rows</h4><p>Data entry · Delivered in 18 hrs</p></div>
+          <span class="hero-card-badge badge-done">Done</span>
+        </div>
+      </div>
+      <div class="hero-card" id="hc2">
+        <div class="hero-card-row">
+          <div class="hero-card-icon">✍️</div>
+          <div class="hero-card-text"><h4>Website copy — 6 pages</h4><p>Copywriting · In progress</p></div>
+          <span class="hero-card-badge badge-progress">In progress</span>
+        </div>
+      </div>
+      <div class="hero-card" id="hc3">
+        <div class="hero-card-row">
+          <div class="hero-card-icon">🎙️</div>
+          <div class="hero-card-text"><h4>Podcast episode — 47 mins</h4><p>Transcription · Just submitted</p></div>
+          <span class="hero-card-badge badge-new">New</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stats-inner">
+      <div class="stat"><div class="stat-num">99<span>.8%</span></div><div class="stat-label">Accuracy rate</div></div>
+      <div class="stat"><div class="stat-num">24<span>hrs</span></div><div class="stat-label">Standard turnaround</div></div>
+      <div class="stat"><div class="stat-num">3<span>+</span></div><div class="stat-label">Core services</div></div>
+      <div class="stat"><div class="stat-num">100<span>%</span></div><div class="stat-label">Satisfaction guaranteed</div></div>
+    </div>
+  </div>
+
+  <section>
+    <div class="section-head">
+      <div class="section-eyebrow">What we do</div>
+      <div class="section-title">Three services. One reliable team.</div>
+      <div class="section-sub">Whether you need a spreadsheet filled, a landing page written, or a meeting transcribed, SwiftScribe delivers with speed and precision.</div>
+    </div>
+    <div class="services-grid">
+      <div class="service-card">
+        <div class="service-icon">📋</div>
+        <h3>Data Entry</h3>
+        <p>Accurate, structured entry of any volume of data into your systems, spreadsheets, or databases — at speed.</p>
+        <div class="tag-row"><span class="tag">Spreadsheets</span><span class="tag">CRM input</span><span class="tag">Forms</span><span class="tag">Databases</span></div>
+      </div>
+      <div class="service-card">
+        <div class="service-icon">✍️</div>
+        <h3>Copywriting</h3>
+        <p>Engaging, conversion-focused copy for websites, social media, email campaigns, product descriptions, and more.</p>
+        <div class="tag-row"><span class="tag">Web copy</span><span class="tag">Email</span><span class="tag">Social</span><span class="tag">Ads</span></div>
+      </div>
+      <div class="service-card">
+        <div class="service-icon">🎙️</div>
+        <h3>Transcription</h3>
+        <p>Word-for-word transcription of meetings, interviews, podcasts, and any audio or video file — clean and formatted.</p>
+        <div class="tag-row"><span class="tag">Meetings</span><span class="tag">Podcasts</span><span class="tag">Interviews</span><span class="tag">Video</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="background: var(--bg-secondary); border-radius: var(--radius-lg); max-width:1100px; margin: 0 auto 2rem;">
+    <div class="section-head" style="margin-bottom:2rem">
+      <div class="section-eyebrow">Process</div>
+      <div class="section-title">How it works</div>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:2rem;">
+      <div style="padding:1.5rem 0;">
+        <div style="font-size:28px; font-weight:700; color:var(--teal); margin-bottom:0.75rem;">01</div>
+        <h3 style="font-size:16px; font-weight:600; margin-bottom:0.5rem;">Submit your request</h3>
+        <p style="font-size:14px; color:var(--text-muted); line-height:1.7;">Upload files, describe your project, or fill a short brief. We handle any format or file type.</p>
+      </div>
+      <div style="padding:1.5rem 0; border-left:0.5px solid var(--border); border-right:0.5px solid var(--border); padding-left:2rem; padding-right:2rem;">
+        <div style="font-size:28px; font-weight:700; color:var(--teal); margin-bottom:0.75rem;">02</div>
+        <h3 style="font-size:16px; font-weight:600; margin-bottom:0.5rem;">We get to work</h3>
+        <p style="font-size:14px; color:var(--text-muted); line-height:1.7;">Our team picks up your task immediately. Most projects are delivered in under 24 hours.</p>
+      </div>
+      <div style="padding:1.5rem 0;">
+        <div style="font-size:28px; font-weight:700; color:var(--teal); margin-bottom:0.75rem;">03</div>
+        <h3 style="font-size:16px; font-weight:600; margin-bottom:0.5rem;">Review &amp; approve</h3>
+        <p style="font-size:14px; color:var(--text-muted); line-height:1.7;">Receive clean deliverables. Request revisions freely — we don't close the job until you're happy.</p>
+      </div>
+    </div>
+  </section>
+
+  <section style="text-align:center; padding:4rem 2rem;">
+    <div class="section-eyebrow" style="text-align:center;">Ready to get started?</div>
+    <div class="section-title" style="font-size:36px; margin-bottom:1rem;">Let's take work off your plate</div>
+    <p style="font-size:16px; color:var(--text-muted); margin-bottom:2rem;">Join businesses that trust SwiftScribe for fast, accurate, professional output.</p>
+    <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
+      <button class="btn btn-green" onclick="showPage('pricing')">View pricing</button>
+      <button class="btn btn-outline" onclick="showPage('contact')">Talk to us first</button>
+    </div>
+  </section>
+</div>
+
+<!-- PRICING PAGE -->
+<div class="page" id="pricing-page">
+  <section>
+    <div class="section-head" style="text-align:center; max-width:600px; margin:0 auto 3rem;">
+      <div class="section-eyebrow">Pricing</div>
+      <div class="section-title">Simple, transparent pricing</div>
+      <div class="section-sub" style="margin:0 auto;">No hidden fees. No contracts. Pay via PayPal or M-Pesa Till No. 6109309. Need an invoice? Just ask.</div>
+    </div>
+
+    <div class="pricing-grid">
+      <!-- STARTER -->
+      <div class="price-card">
+        <div class="price-tier">Starter</div>
+        <div class="price-amount"><sup>$</sup>49</div>
+        <div class="price-period">per project</div>
+        <div class="price-desc">Perfect for small one-off tasks — a single spreadsheet, a short audio file, or a web page of copy.</div>
+        <ul class="feature-list">
+          <li>Up to 500 rows data entry OR</li>
+          <li>Up to 30 mins transcription OR</li>
+          <li>Up to 500 words copywriting</li>
+          <li>48-hour turnaround</li>
+          <li>1 free revision</li>
+          <li>Email support</li>
+        </ul>
+        <div class="payment-tabs">
+          <div class="pay-tab active" onclick="switchPay('starter','paypal',this)">💳 PayPal</div>
+          <div class="pay-tab" onclick="switchPay('starter','mpesa',this)">📱 M-Pesa</div>
+        </div>
+        <div class="pay-panel active" id="starter-paypal">
+          <div id="paypal-starter"></div>
+          <button class="proof-btn proof-wa" onclick="sendProof('Starter','$49','wa')">📤 Send M-Pesa Proof via WhatsApp</button>
+          <button class="proof-btn proof-email" onclick="sendProof('Starter','$49','email')">✉️ Send Proof via Email</button>
+        </div>
+        <div class="pay-panel" id="starter-mpesa">
+          <div class="mpesa-box">
+            <div class="mpesa-logo">M-PESA</div>
+            <div class="mpesa-label">Buy Goods Till Number</div>
+            <div class="mpesa-till">6109309</div>
+            <div class="mpesa-label">Amount: KES equiv. of $49</div>
+            <div class="mpesa-steps">1. M-Pesa → Lipa na M-Pesa<br>2. Select <strong>Buy Goods &amp; Services</strong><br>3. Till No. <strong>6109309</strong><br>4. Enter amount → confirm PIN</div>
+          </div>
+          <button class="proof-btn proof-wa" onclick="sendProof('Starter','$49','wa')">📤 Send Proof via WhatsApp</button>
+          <button class="proof-btn proof-email" onclick="sendProof('Starter','$49','email')">✉️ Send Proof via Email</button>
+        </div>
+        <button class="invoice-btn" onclick="requestInvoice('Starter','$49')">🧾 Request Invoice</button>
+      </div>
+
+      <!-- PRO -->
+      <div class="price-card featured">
+        <div class="popular-badge">Most popular</div>
+        <div class="price-tier">Professional</div>
+        <div class="price-amount"><sup>$</sup>149</div>
+        <div class="price-period">per project</div>
+        <div class="price-desc">For growing businesses that need fast, reliable output across multiple services or higher volumes.</div>
+        <ul class="feature-list">
+          <li>Up to 2,000 rows data entry OR</li>
+          <li>Up to 90 mins transcription OR</li>
+          <li>Up to 2,000 words copywriting</li>
+          <li>24-hour turnaround</li>
+          <li>3 free revisions</li>
+          <li>Priority support</li>
+          <li>Mix services in one project</li>
+        </ul>
+        <div class="payment-tabs">
+          <div class="pay-tab active" onclick="switchPay('pro','paypal',this)">💳 PayPal</div>
+          <div class="pay-tab" onclick="switchPay('pro','mpesa',this)">📱 M-Pesa</div>
+        </div>
+        <div class="pay-panel active" id="pro-paypal">
+          <div id="paypal-pro"></div>
+          <button class="proof-btn proof-wa" onclick="sendProof('Professional','$149','wa')">📤 Send M-Pesa Proof via WhatsApp</button>
+          <button class="proof-btn proof-email" onclick="sendProof('Professional','$149','email')">✉️ Send Proof via Email</button>
+        </div>
+        <div class="pay-panel" id="pro-mpesa">
+          <div class="mpesa-box">
+            <div class="mpesa-logo">M-PESA</div>
+            <div class="mpesa-label">Buy Goods Till Number</div>
+            <div class="mpesa-till">6109309</div>
+            <div class="mpesa-label">Amount: KES equiv. of $149</div>
+            <div class="mpesa-steps">1. M-Pesa → Lipa na M-Pesa<br>2. Select <strong>Buy Goods &amp; Services</strong><br>3. Till No. <strong>6109309</strong><br>4. Enter amount → confirm PIN</div>
+          </div>
+          <button class="proof-btn proof-wa" onclick="sendProof('Professional','$149','wa')">📤 Send Proof via WhatsApp</button>
+          <button class="proof-btn proof-email" onclick="sendProof('Professional','$149','email')">✉️ Send Proof via Email</button>
+        </div>
+        <button class="invoice-btn" onclick="requestInvoice('Professional','$149')">🧾 Request Invoice</button>
+      </div>
+
+      <!-- ENTERPRISE -->
+      <div class="price-card">
+        <div class="price-tier">Enterprise</div>
+        <div class="price-amount"><sup>$</sup>349</div>
+        <div class="price-period">per project</div>
+        <div class="price-desc">For large-scale, recurring, or complex projects that need a dedicated point of contact and SLA.</div>
+        <ul class="feature-list">
+          <li>Unlimited rows / words / minutes</li>
+          <li>Same-day turnaround option</li>
+          <li>Unlimited revisions</li>
+          <li>Dedicated account manager</li>
+          <li>Monthly retainer available</li>
+          <li>Custom SLA &amp; NDAs</li>
+        </ul>
+        <div class="payment-tabs">
+          <div class="pay-tab active" onclick="switchPay('enterprise','paypal',this)">💳 PayPal</div>
+          <div class="pay-tab" onclick="switchPay('enterprise','mpesa',this)">📱 M-Pesa</div>
+        </div>
+        <div class="pay-panel active" id="enterprise-paypal">
+          <div id="paypal-enterprise"></div>
+          <button class="proof-btn proof-wa" onclick="sendProof('Enterprise','$349','wa')">📤 Send M-Pesa Proof via WhatsApp</button>
+          <button class="proof-btn proof-email" onclick="sendProof('Enterprise','$349','email')">✉️ Send Proof via Email</button>
+        </div>
+        <div class="pay-panel" id="enterprise-mpesa">
+          <div class="mpesa-box">
+            <div class="mpesa-logo">M-PESA</div>
+            <div class="mpesa-label">Buy Goods Till Number</div>
+            <div class="mpesa-till">6109309</div>
+            <div class="mpesa-label">Amount: KES equiv. of $349</div>
+            <div class="mpesa-steps">1. M-Pesa → Lipa na M-Pesa<br>2. Select <strong>Buy Goods &amp; Services</strong><br>3. Till No. <strong>6109309</strong><br>4. Enter amount → confirm PIN</div>
+          </div>
+          <button class="proof-btn proof-wa" onclick="sendProof('Enterprise','$349','wa')">📤 Send Proof via WhatsApp</button>
+          <button class="proof-btn proof-email" onclick="sendProof('Enterprise','$349','email')">✉️ Send Proof via Email</button>
+        </div>
+        <button class="invoice-btn" onclick="requestInvoice('Enterprise','$349')">🧾 Request Invoice</button>
+      </div>
+    </div>
+
+    <div style="background:var(--bg-secondary); border-radius:var(--radius-lg); padding:2.5rem; text-align:center; margin-top:3rem;">
+      <h3 style="font-size:20px; font-weight:600; margin-bottom:0.5rem;">Not sure which plan fits?</h3>
+      <p style="font-size:14px; color:var(--text-muted); margin-bottom:1.5rem;">Tell us about your project and we'll send a custom quote within 2 hours — no obligation.</p>
+      <button class="btn btn-green" onclick="showPage('contact')">Request a custom quote →</button>
+    </div>
+  </section>
+</div>
+
+<!-- PORTFOLIO PAGE -->
+<div class="page" id="portfolio-page">
+  <section>
+    <div class="section-head">
+      <div class="section-eyebrow">Our work</div>
+      <div class="section-title">Sample projects</div>
+      <div class="section-sub">A selection of the types of work we deliver. Client details are kept confidential.</div>
+    </div>
+    <div class="portfolio-filters">
+      <button class="filter-btn active" onclick="filterPortfolio('all', this)">All work</button>
+      <button class="filter-btn" onclick="filterPortfolio('data', this)">Data Entry</button>
+      <button class="filter-btn" onclick="filterPortfolio('copy', this)">Copywriting</button>
+      <button class="filter-btn" onclick="filterPortfolio('transcript', this)">Transcription</button>
+    </div>
+    <div class="portfolio-grid" id="portfolio-grid">
+      <div class="portfolio-item" data-cat="data">
+        <div class="portfolio-thumb thumb-data">📊</div>
+        <div class="portfolio-info">
+          <div class="portfolio-category">Data Entry</div>
+          <div class="portfolio-title">E-commerce product catalog</div>
+          <div class="portfolio-desc">3,200 SKUs entered and formatted into a structured spreadsheet with images, pricing, and categories.</div>
+        </div>
+      </div>
+      <div class="portfolio-item" data-cat="copy">
+        <div class="portfolio-thumb thumb-copy">✍️</div>
+        <div class="portfolio-info">
+          <div class="portfolio-category">Copywriting</div>
+          <div class="portfolio-title">SaaS website rewrite</div>
+          <div class="portfolio-desc">Full homepage, features page, and pricing page copy for a B2B software company — conversion-optimized.</div>
+        </div>
+      </div>
+      <div class="portfolio-item" data-cat="transcript">
+        <div class="portfolio-thumb thumb-transcript">🎙️</div>
+        <div class="portfolio-info">
+          <div class="portfolio-category">Transcription</div>
+          <div class="portfolio-title">8-episode podcast series</div>
+          <div class="portfolio-desc">Verbatim transcripts of a weekly business podcast with timestamps, speaker labels, and formatted chapters.</div>
+        </div>
+      </div>
+      <div class="portfolio-item" data-cat="data">
+        <div class="portfolio-thumb thumb-data">🗂️</div>
+        <div class="portfolio-info">
+          <div class="portfolio-category">Data Entry</div>
+          <div class="portfolio-title">CRM contact migration</div>
+          <div class="portfolio-desc">1,800 business contacts cleaned, deduplicated, and migrated from spreadsheets into a client's CRM system.</div>
+        </div>
+      </div>
+      <div class="portfolio-item" data-cat="copy">
+        <div class="portfolio-thumb thumb-copy">📧</div>
+        <div class="portfolio-info">
+          <div class="portfolio-category">Copywriting</div>
+          <div class="portfolio-title">Email nurture sequence</div>
+          <div class="portfolio-desc">12-email onboarding sequence for a fintech startup, written to increase activation and reduce churn.</div>
+        </div>
+      </div>
+      <div class="portfolio-item" data-cat="transcript">
+        <div class="portfolio-thumb thumb-transcript">🎥</div>
+        <div class="portfolio-info">
+          <div class="portfolio-category">Transcription</div>
+          <div class="portfolio-title">Legal deposition transcript</div>
+          <div class="portfolio-desc">Verbatim transcript of a 3-hour legal deposition with speaker identification and formatted for court submission.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- CONTACT PAGE -->
+<div class="page" id="contact-page">
+  <section>
+    <div class="section-head">
+      <div class="section-eyebrow">Get in touch</div>
+      <div class="section-title">Let's talk about your project</div>
+      <div class="section-sub">Fill in the form and we'll get back to you with a quote within 2 business hours.</div>
+    </div>
+    <div class="contact-grid">
+      <div class="contact-info">
+        <h3>We'd love to hear from you</h3>
+        <p>Whether you have a quick question, want a quote, or are ready to place an order — reach out and a real person will respond.</p>
+        <div class="contact-detail">
+          <div class="contact-icon">📧</div>
+          <div class="contact-detail-text">
+            <div class="contact-detail-label">Email</div>
+            hello@swiftscribe.com
+          </div>
+        </div>
+        <div class="contact-detail">
+          <div class="contact-icon">💬</div>
+          <div class="contact-detail-text">
+            <div class="contact-detail-label">WhatsApp</div>
+            <a href="https://wa.me/254791303993" target="_blank" style="color:inherit;text-decoration:none;">+254 791 303 993</a>
+          </div>
+        </div>
+        <div class="contact-detail">
+          <div class="contact-icon">🕐</div>
+          <div class="contact-detail-text">
+            <div class="contact-detail-label">Response time</div>
+            Within 2 business hours
+          </div>
+        </div>
+        <div class="contact-detail">
+          <div class="contact-icon">🌍</div>
+          <div class="contact-detail-text">
+            <div class="contact-detail-label">Location</div>
+            Nairobi, Kenya — serving clients globally
+          </div>
+        </div>
+        <div style="margin-top:1.5rem;">
+          <a href="https://wa.me/254791303993?text=Hi%20SwiftScribe!%20I%27d%20like%20to%20get%20a%20quote." target="_blank" class="btn btn-green" style="font-size:13px;">
+            💬 Chat on WhatsApp →
+          </a>
+        </div>
+      </div>
+
+      <div class="contact-form" id="contact-form-wrap">
+        <div class="form-row">
+          <div class="form-group">
+            <label>First name</label>
+            <input type="text" id="cf-fname" placeholder="Jane" />
+          </div>
+          <div class="form-group">
+            <label>Last name</label>
+            <input type="text" id="cf-lname" placeholder="Smith" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email address</label>
+          <input type="email" id="cf-email" placeholder="jane@company.com" />
+        </div>
+        <div class="form-group">
+          <label>Company (optional)</label>
+          <input type="text" id="cf-company" placeholder="Your company name" />
+        </div>
+        <div class="form-group">
+          <label>Service needed</label>
+          <select id="cf-service">
+            <option value="">Select a service...</option>
+            <option>Data Entry</option>
+            <option>Copywriting</option>
+            <option>Transcription</option>
+            <option>Multiple services</option>
+            <option>Not sure — need advice</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Tell us about your project</label>
+          <textarea id="cf-message" placeholder="Describe what you need, volume of work, deadline, any relevant details..."></textarea>
+        </div>
+        <button class="btn btn-green" style="width:100%; justify-content:center;" onclick="submitContact()">Send message →</button>
+        <div class="form-success" id="form-success">
+          <div class="check">✅</div>
+          <h3>Message received!</h3>
+          <p>Thanks for reaching out. We'll be in touch within 2 business hours with your custom quote.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo" style="font-size:20px; font-weight:700; color:white;">Swift<span style="color:#5DCAA5;">Scribe</span></div>
+        <p>Fast, accurate, and professional data entry, copywriting, and transcription services — delivered within 24 hours.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Services</h4>
+        <a onclick="showPage('pricing')">Data Entry</a>
+        <a onclick="showPage('pricing')">Copywriting</a>
+        <a onclick="showPage('pricing')">Transcription</a>
+        <a onclick="showPage('pricing')">Pricing</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a onclick="showPage('portfolio')">Our Work</a>
+        <a onclick="showPage('contact')">Contact Us</a>
+        <a onclick="showPage('contact')">Get a Quote</a>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <a href="mailto:hello@swiftscribe.com">hello@swiftscribe.com</a>
+        <a href="https://wa.me/254791303993" target="_blank">+254 791 303 993</a>
+        <a>Nairobi, Kenya</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 SwiftScribe. All rights reserved.</p>
+      <div class="social-row">
+        <a class="social-btn" href="https://wa.me/254791303993" target="_blank" title="WhatsApp">💬</a>
+        <a class="social-btn" href="mailto:hello@swiftscribe.com" title="Email">✉️</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- INVOICE MODAL -->
+<div class="modal-overlay" id="invoice-modal">
+  <div class="modal-box">
+    <h3>🧾 Request an Invoice</h3>
+    <p id="invoice-modal-desc">We'll send a professional invoice to your email within 30 minutes.</p>
+    <input class="modal-input" type="text" id="inv-name" placeholder="Your full name" />
+    <input class="modal-input" type="email" id="inv-email" placeholder="Your email address" />
+    <input class="modal-input" type="text" id="inv-company" placeholder="Company name (optional)" />
+    <div class="modal-row">
+      <button class="modal-cancel" onclick="closeModal('invoice-modal')">Cancel</button>
+      <button class="modal-submit" onclick="submitInvoiceRequest()">Send Request →</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAYPAL SDK — uses your PayPal email as merchant ID -->
+<script src="https://www.paypal.com/sdk/js?client-id=nel45090@gmail.com&currency=USD"></script>
+
+<script>
+const WA_NUMBER = '254791303993';
+const SUPPORT_EMAIL = 'hello@swiftscribe.com';
+let _invoicePlan = '';
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+  document.getElementById(name + '-page').classList.add('active');
+  const navEl = document.getElementById('nav-' + name);
+  if (navEl) navEl.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (name === 'pricing' && !window.paypalLoaded) initPayPal();
+}
+
+function toggleMenu() {
+  document.getElementById('mobile-menu').classList.toggle('open');
+}
+
+function filterPortfolio(cat, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.portfolio-item').forEach(item => {
+    item.style.display = (cat === 'all' || item.dataset.cat === cat) ? 'block' : 'none';
+  });
+}
+
+function submitContact() {
+  const fname = document.getElementById('cf-fname').value.trim();
+  const email = document.getElementById('cf-email').value.trim();
+  if (!fname || !email) { alert('Please fill in your name and email address.'); return; }
+  // Send to WhatsApp
+  const service = document.getElementById('cf-service').value;
+  const message = document.getElementById('cf-message').value;
+  const waMsg = encodeURIComponent(
+    'Hi SwiftScribe! New enquiry from the website:\n\nName: ' + fname + ' ' + document.getElementById('cf-lname').value +
+    '\nEmail: ' + email +
+    (document.getElementById('cf-company').value ? '\nCompany: ' + document.getElementById('cf-company').value : '') +
+    (service ? '\nService: ' + service : '') +
+    (message ? '\nMessage: ' + message : '')
+  );
+  window.open('https://wa.me/' + WA_NUMBER + '?text=' + waMsg, '_blank');
+  document.querySelector('#contact-form-wrap .form-row').style.display = 'none';
+  document.querySelectorAll('#contact-form-wrap .form-group').forEach(g => g.style.display = 'none');
+  document.querySelector('#contact-form-wrap button').style.display = 'none';
+  document.getElementById('form-success').style.display = 'block';
+}
+
+/* ── PAYMENT TABS ── */
+function switchPay(plan, tab, el) {
+  const wrap = el.closest('.price-card');
+  wrap.querySelectorAll('.pay-tab').forEach(t => t.classList.remove('active'));
+  wrap.querySelectorAll('.pay-panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById(plan + '-' + tab).classList.add('active');
+}
+
+/* ── SEND PROOF OF PAYMENT ── */
+function sendProof(plan, amount, channel) {
+  if (channel === 'wa') {
+    const msg = encodeURIComponent(
+      'Hi SwiftScribe! I just paid via M-Pesa for the ' + plan + ' Plan (' + amount + ').\n\nName: \nM-Pesa Transaction Code: \n\n[Please attach your M-Pesa screenshot]'
+    );
+    window.open('https://wa.me/' + WA_NUMBER + '?text=' + msg, '_blank');
+  } else {
+    const subject = encodeURIComponent('Proof of Payment — SwiftScribe ' + plan + ' Plan (' + amount + ')');
+    const body = encodeURIComponent(
+      'Hi SwiftScribe,\n\nI have completed M-Pesa payment for the ' + plan + ' Plan (' + amount + ').\n\nName: \nM-Pesa Transaction Code: \n\nProof of payment screenshot attached.\n\nThank you!'
+    );
+    window.open('mailto:' + SUPPORT_EMAIL + '?subject=' + subject + '&body=' + body);
+  }
+}
+
+/* ── REQUEST INVOICE ── */
+function requestInvoice(plan, amount) {
+  _invoicePlan = plan + ' Plan — ' + amount;
+  document.getElementById('invoice-modal-desc').textContent =
+    'Request an invoice for the ' + plan + ' Plan (' + amount + '). We\'ll send it to your email within 30 minutes.';
+  document.getElementById('inv-name').value = '';
+  document.getElementById('inv-email').value = '';
+  document.getElementById('inv-company').value = '';
+  document.getElementById('invoice-modal').classList.add('open');
+}
+
+function submitInvoiceRequest() {
+  const name = document.getElementById('inv-name').value.trim();
+  const email = document.getElementById('inv-email').value.trim();
+  const company = document.getElementById('inv-company').value.trim();
+  if (!name || !email) { alert('Please enter your name and email.'); return; }
+  const waMsg = encodeURIComponent(
+    'Hi SwiftScribe! Invoice request:\n\nPlan: ' + _invoicePlan +
+    '\nName: ' + name + '\nEmail: ' + email +
+    (company ? '\nCompany: ' + company : '') +
+    '\n\nPlease send the invoice to my email. Thank you!'
+  );
+  closeModal('invoice-modal');
+  window.open('https://wa.me/' + WA_NUMBER + '?text=' + waMsg, '_blank');
+  setTimeout(() => {
+    const subject = encodeURIComponent('Invoice Request — SwiftScribe ' + _invoicePlan);
+    const body = encodeURIComponent('Hi,\n\nI would like to request an invoice.\n\nPlan: ' + _invoicePlan + '\nName: ' + name + '\nEmail: ' + email + (company ? '\nCompany: ' + company : '') + '\n\nThank you!');
+    window.open('mailto:' + SUPPORT_EMAIL + '?subject=' + subject + '&body=' + body);
+  }, 600);
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('open');
+});
+
+/* ── PAYPAL ── */
+function initPayPal() {
+  if (typeof paypal === 'undefined') {
+    console.warn('PayPal SDK not loaded — clients can still use M-Pesa or request invoice.');
+    return;
+  }
+  window.paypalLoaded = true;
+  const plans = [
+    { id: 'paypal-starter',    amount: '49.00',  label: 'Starter Plan'      },
+    { id: 'paypal-pro',        amount: '149.00', label: 'Professional Plan'  },
+    { id: 'paypal-enterprise', amount: '349.00', label: 'Enterprise Plan'    }
+  ];
+  plans.forEach(plan => {
+    paypal.Buttons({
+      style: { layout: 'vertical', color: 'blue', shape: 'rect', label: 'pay', height: 44 },
+      createOrder: (data, actions) => actions.order.create({
+        purchase_units: [{ amount: { value: plan.amount }, description: plan.label }]
+      }),
+      onApprove: (data, actions) => actions.order.capture().then(() => {
+        const msg = encodeURIComponent(
+          'Hi SwiftScribe! I just completed PayPal payment for the ' + plan.label + '. Please start my project. Thank you!'
+        );
+        if (confirm('Payment successful! 🎉\n\nClick OK to notify us on WhatsApp and we\'ll kick off your project right away.')) {
+          window.open('https://wa.me/' + WA_NUMBER + '?text=' + msg, '_blank');
+        }
+      }),
+      onError: () => {
+        alert('PayPal payment could not be completed. Please try M-Pesa (Till: 6109309) or request an invoice.');
+      }
+    }).render('#' + plan.id);
+  });
+}
+</script>
+</body>
+</html>

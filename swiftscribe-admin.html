@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SwiftScribe — Admin Dashboard</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--teal:#1D9E75;--teal-light:#E1F5EE;--teal-dark:#0F6E56;--bg:#F4F5F7;--card:#FFFFFF;--text:#1A1A18;--muted:#6B6B65;--hint:#9C9C96;--border:rgba(0,0,0,0.09);--red:#E53E3E;--yellow:#D69E2E;--blue:#3182CE;--radius:10px;--shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+/* LOGIN */
+.login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999}
+.login-box{background:var(--card);border-radius:16px;padding:2.5rem;width:340px;box-shadow:var(--shadow);border:0.5px solid var(--border)}
+.login-logo{font-size:22px;font-weight:700;color:var(--text);margin-bottom:0.25rem}.login-logo span{color:var(--teal)}
+.login-sub{font-size:13px;color:var(--muted);margin-bottom:2rem}
+.inp{width:100%;padding:10px 14px;border:0.5px solid rgba(0,0,0,0.15);border-radius:var(--radius);font-size:14px;background:#fff;color:var(--text);margin-bottom:12px}
+.inp:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-light)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s}
+.btn-green{background:var(--teal);color:#fff}.btn-green:hover{background:var(--teal-dark)}
+.btn-outline{background:transparent;border:0.5px solid rgba(0,0,0,0.15);color:var(--text)}.btn-outline:hover{background:var(--bg)}
+.btn-red{background:#FFF5F5;color:var(--red);border:0.5px solid #FED7D7}.btn-red:hover{background:#FED7D7}
+.err{color:var(--red);font-size:12px;margin-top:6px;display:none}
+/* LAYOUT */
+.app{display:none;min-height:100vh}
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:220px;background:#0F1A14;display:flex;flex-direction:column;z-index:50}
+.sidebar-logo{padding:1.5rem 1.25rem 1rem;font-size:18px;font-weight:700;color:#fff;border-bottom:0.5px solid rgba(255,255,255,0.08)}.sidebar-logo span{color:#5DCAA5}
+.sidebar-menu{flex:1;padding:1rem 0.75rem;display:flex;flex-direction:column;gap:2px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:rgba(255,255,255,0.55);cursor:pointer;transition:all .15s;font-size:13px}
+.nav-item:hover,.nav-item.active{background:rgba(255,255,255,0.08);color:#fff}
+.nav-item.active{background:rgba(29,158,117,0.2);color:#5DCAA5}
+.nav-icon{font-size:16px;width:20px;text-align:center}
+.sidebar-foot{padding:1rem 0.75rem;border-top:0.5px solid rgba(255,255,255,0.08)}
+.main{margin-left:220px;padding:2rem}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem}
+.topbar h1{font-size:20px;font-weight:600;letter-spacing:-0.5px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.avatar{width:34px;height:34px;background:var(--teal);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:600}
+/* CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+.stat-card{background:var(--card);border-radius:var(--radius);padding:1.25rem;border:0.5px solid var(--border)}
+.stat-card-label{font-size:12px;color:var(--muted);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:.8px}
+.stat-card-num{font-size:28px;font-weight:700;letter-spacing:-1px;color:var(--text)}
+.stat-card-sub{font-size:12px;color:var(--teal);margin-top:4px}
+/* TABLES */
+.section-card{background:var(--card);border-radius:var(--radius);border:0.5px solid var(--border);margin-bottom:1.5rem;overflow:hidden}
+.section-card-head{padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between;border-bottom:0.5px solid var(--border)}
+.section-card-head h2{font-size:15px;font-weight:600}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:10px 1.5rem;text-align:left;border-bottom:0.5px solid var(--border);background:#FAFAFA}
+td{padding:12px 1.5rem;border-bottom:0.5px solid var(--border);font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#FAFAF8}
+.badge{display:inline-flex;align-items:center;font-size:11px;font-weight:500;padding:3px 10px;border-radius:12px}
+.badge-done{background:#E1F5EE;color:#0F6E56}
+.badge-progress{background:#FFF3CD;color:#856404}
+.badge-pending{background:#E8F4FD;color:#0C5460}
+.badge-cancelled{background:#FFF5F5;color:#822727}
+.select-status{font-size:12px;border:0.5px solid var(--border);border-radius:6px;padding:4px 8px;background:#fff;color:var(--text);cursor:pointer}
+/* VIEWS */
+.view{display:none}.view.active{display:block}
+.empty{text-align:center;padding:3rem;color:var(--hint);font-size:13px}
+.search-bar{padding:8px 12px;border:0.5px solid var(--border);border-radius:var(--radius);font-size:13px;width:220px;background:#fff;color:var(--text)}
+.search-bar:focus{outline:none;border-color:var(--teal)}
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:200}
+.modal-bg.open{display:flex}
+.modal{background:var(--card);border-radius:16px;padding:2rem;width:500px;max-width:95vw;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+.modal h2{font-size:17px;font-weight:600;margin-bottom:1.25rem}
+.form-group{margin-bottom:1rem}
+.form-group label{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 12px;border:0.5px solid rgba(0,0,0,0.15);border-radius:var(--radius);font-size:13px;background:#fff;color:var(--text);font-family:inherit}
+.form-group textarea{height:80px;resize:vertical}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--teal)}
+.modal-foot{display:flex;gap:10px;justify-content:flex-end;margin-top:1.5rem;padding-top:1.25rem;border-top:0.5px solid var(--border)}
+@media(max-width:900px){.sidebar{display:none}.main{margin-left:0}.stats-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-screen" id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">Swift<span>Scribe</span></div>
+    <div class="login-sub">Admin Dashboard — sign in to continue</div>
+    <input class="inp" type="text" id="li-user" placeholder="Username" value="admin"/>
+    <input class="inp" type="password" id="li-pass" placeholder="Password" />
+    <div class="err" id="li-err">Incorrect credentials. Try admin / admin123</div>
+    <button class="btn btn-green" style="width:100%;justify-content:center" onclick="doLogin()">Sign in →</button>
+    <p style="font-size:11px;color:var(--hint);margin-top:12px;text-align:center">Default: admin / admin123</p>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+  <div class="sidebar">
+    <div class="sidebar-logo">Swift<span>Scribe</span></div>
+    <div class="sidebar-menu">
+      <div class="nav-item active" onclick="showView('dashboard',this)"><span class="nav-icon">📊</span> Dashboard</div>
+      <div class="nav-item" onclick="showView('orders',this)"><span class="nav-icon">📋</span> Orders</div>
+      <div class="nav-item" onclick="showView('contacts',this)"><span class="nav-icon">✉️</span> Contact Leads</div>
+      <div class="nav-item" onclick="showView('waitlist',this)"><span class="nav-icon">⏳</span> Waitlist</div>
+      <div class="nav-item" onclick="showView('revenue',this)"><span class="nav-icon">💰</span> Revenue</div>
+    </div>
+    <div class="sidebar-foot">
+      <div class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span> Sign out</div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <h1 id="view-title">Dashboard</h1>
+      <div class="topbar-right">
+        <button class="btn btn-green" onclick="openAddOrder()">+ New Order</button>
+        <div class="avatar">A</div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD VIEW -->
+    <div class="view active" id="view-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card-label">Total Orders</div>
+          <div class="stat-card-num" id="st-total">0</div>
+          <div class="stat-card-sub">All time</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">In Progress</div>
+          <div class="stat-card-num" id="st-progress">0</div>
+          <div class="stat-card-sub">Active jobs</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Revenue</div>
+          <div class="stat-card-num" id="st-revenue">$0</div>
+          <div class="stat-card-sub">Paid orders</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Waitlist</div>
+          <div class="stat-card-num" id="st-waitlist">0</div>
+          <div class="stat-card-sub">Signups</div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-card-head"><h2>Recent Orders</h2><button class="btn btn-outline" onclick="showView('orders',null)">View all</button></div>
+        <table><thead><tr><th>Client</th><th>Service</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody id="dash-orders-body"><tr><td colspan="5" class="empty">No orders yet. Add your first order above.</td></tr></tbody></table>
+      </div>
+
+      <div class="section-card">
+        <div class="section-card-head"><h2>Recent Leads</h2><button class="btn btn-outline" onclick="showView('contacts',null)">View all</button></div>
+        <table><thead><tr><th>Name</th><th>Email</th><th>Service</th><th>Date</th></tr></thead>
+        <tbody id="dash-contacts-body"><tr><td colspan="4" class="empty">No contact submissions yet.</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <!-- ORDERS VIEW -->
+    <div class="view" id="view-orders">
+      <div class="section-card">
+        <div class="section-card-head">
+          <h2>All Orders</h2>
+          <div style="display:flex;gap:10px;align-items:center">
+            <input class="search-bar" placeholder="Search orders…" oninput="renderOrders(this.value)"/>
+            <button class="btn btn-green" onclick="openAddOrder()">+ Add Order</button>
+          </div>
+        </div>
+        <table><thead><tr><th>Client</th><th>Service</th><th>Description</th><th>Amount</th><th>Status</th><th>Date</th><th></th></tr></thead>
+        <tbody id="orders-body"></tbody></table>
+      </div>
+    </div>
+
+    <!-- CONTACTS VIEW -->
+    <div class="view" id="view-contacts">
+      <div class="section-card">
+        <div class="section-card-head"><h2>Contact Leads</h2><input class="search-bar" placeholder="Search…" oninput="renderContacts(this.value)"/></div>
+        <table><thead><tr><th>Name</th><th>Email</th><th>Company</th><th>Service</th><th>Message</th><th>Date</th></tr></thead>
+        <tbody id="contacts-body"></tbody></table>
+      </div>
+    </div>
+
+    <!-- WAITLIST VIEW -->
+    <div class="view" id="view-waitlist">
+      <div class="section-card">
+        <div class="section-card-head"><h2>Waitlist Signups</h2><span id="wl-total-badge" style="font-size:12px;color:var(--teal)"></span></div>
+        <table><thead><tr><th>#</th><th>Name</th><th>Email</th><th>Joined</th></tr></thead>
+        <tbody id="waitlist-body"></tbody></table>
+      </div>
+    </div>
+
+    <!-- REVENUE VIEW -->
+    <div class="view" id="view-revenue">
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="stat-card"><div class="stat-card-label">Total Revenue</div><div class="stat-card-num" id="rev-total">$0</div><div class="stat-card-sub">All paid orders</div></div>
+        <div class="stat-card"><div class="stat-card-label">Avg Order Value</div><div class="stat-card-num" id="rev-avg">$0</div><div class="stat-card-sub">Per completed job</div></div>
+        <div class="stat-card"><div class="stat-card-label">Pending Payments</div><div class="stat-card-num" id="rev-pending">$0</div><div class="stat-card-sub">Awaiting payment</div></div>
+      </div>
+      <div class="section-card">
+        <div class="section-card-head"><h2>Revenue by Service</h2></div>
+        <table><thead><tr><th>Service</th><th>Orders</th><th>Revenue</th><th>Avg per Order</th></tr></thead>
+        <tbody id="rev-body"></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD ORDER MODAL -->
+<div class="modal-bg" id="add-order-modal">
+  <div class="modal">
+    <h2>Add New Order</h2>
+    <div class="form-group"><label>Client Name</label><input id="ao-client" placeholder="Jane Smith"/></div>
+    <div class="form-group"><label>Client Email</label><input type="email" id="ao-email" placeholder="jane@company.com"/></div>
+    <div class="form-group"><label>Service</label>
+      <select id="ao-service"><option>Data Entry</option><option>Copywriting</option><option>Transcription</option><option>Multiple Services</option></select>
+    </div>
+    <div class="form-group"><label>Description</label><textarea id="ao-desc" placeholder="Brief description of the job…"></textarea></div>
+    <div class="form-group"><label>Amount ($)</label><input type="number" id="ao-amount" placeholder="149"/></div>
+    <div class="form-group"><label>Status</label>
+      <select id="ao-status"><option value="pending">Pending</option><option value="progress">In Progress</option><option value="done">Completed</option><option value="cancelled">Cancelled</option></select>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('add-order-modal')">Cancel</button>
+      <button class="btn btn-green" onclick="saveOrder()">Save Order</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PASS = 'admin123'; const USER = 'admin';
+let orders = [], contacts = [], waitlist = [];
+
+function doLogin() {
+  const u = document.getElementById('li-user').value.trim();
+  const p = document.getElementById('li-pass').value.trim();
+  if (u === USER && p === PASS) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadData(); refreshAll();
+  } else {
+    document.getElementById('li-err').style.display = 'block';
+  }
+}
+document.getElementById('li-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+function logout() { document.getElementById('app').style.display='none'; document.getElementById('login-screen').style.display='flex'; }
+
+function loadData() {
+  orders = JSON.parse(localStorage.getItem('ss_orders') || '[]');
+  contacts = JSON.parse(localStorage.getItem('ss_contacts') || '[]');
+  waitlist = JSON.parse(localStorage.getItem('ss_waitlist') || '[]');
+  // seed demo data
+  if (!orders.length) {
+    orders = [
+      {id:1,client:'Acme Corp',email:'acme@test.com',service:'Data Entry',desc:'Product catalog 2000 rows',amount:149,status:'done',date:'2026-06-10'},
+      {id:2,client:'BlogPro Media',email:'bp@test.com',service:'Copywriting',desc:'Homepage + 3 blog posts',amount:349,status:'progress',date:'2026-06-18'},
+      {id:3,client:'LegalEdge',email:'le@test.com',service:'Transcription',desc:'3 deposition files 2hrs each',amount:149,status:'pending',date:'2026-06-22'},
+    ];
+    localStorage.setItem('ss_orders', JSON.stringify(orders));
+  }
+  if (!contacts.length) {
+    contacts = [
+      {name:'Sarah K',email:'sarah@startup.io',company:'Startup.io',service:'Copywriting',message:'Need website copy for launch',date:'2026-06-20'},
+      {name:'Tom Odhiambo',email:'tom@realty.ke',company:'Realty Ke',service:'Data Entry',message:'Property listings database entry',date:'2026-06-21'},
+    ];
+    localStorage.setItem('ss_contacts', JSON.stringify(contacts));
+  }
+}
+
+function saveData() { localStorage.setItem('ss_orders', JSON.stringify(orders)); }
+
+function refreshAll() {
+  const total = orders.length;
+  const inProg = orders.filter(o=>o.status==='progress').length;
+  const revenue = orders.filter(o=>o.status==='done').reduce((s,o)=>s+(+o.amount||0),0);
+  document.getElementById('st-total').textContent = total;
+  document.getElementById('st-progress').textContent = inProg;
+  document.getElementById('st-revenue').textContent = '$' + revenue.toLocaleString();
+  document.getElementById('st-waitlist').textContent = waitlist.length;
+  renderDashOrders(); renderDashContacts(); renderOrders(); renderContacts(); renderWaitlist(); renderRevenue();
+}
+
+function renderDashOrders() {
+  const b = document.getElementById('dash-orders-body');
+  const rows = orders.slice(-5).reverse();
+  if (!rows.length) { b.innerHTML = '<tr><td colspan="5" class="empty">No orders yet.</td></tr>'; return; }
+  b.innerHTML = rows.map(o => `<tr>
+    <td><b>${o.client}</b></td><td>${o.service}</td>
+    <td>$${(+o.amount||0).toLocaleString()}</td>
+    <td><span class="badge badge-${o.status==='done'?'done':o.status==='progress'?'progress':o.status==='cancelled'?'cancelled':'pending'}">${statusLabel(o.status)}</span></td>
+    <td>${o.date}</td></tr>`).join('');
+}
+
+function renderDashContacts() {
+  const b = document.getElementById('dash-contacts-body');
+  if (!contacts.length) { b.innerHTML = '<tr><td colspan="4" class="empty">No leads yet.</td></tr>'; return; }
+  b.innerHTML = contacts.slice(-5).reverse().map(c => `<tr>
+    <td><b>${c.name}</b></td><td>${c.email}</td><td>${c.service}</td><td>${c.date}</td></tr>`).join('');
+}
+
+function renderOrders(q='') {
+  const b = document.getElementById('orders-body');
+  const list = q ? orders.filter(o=>o.client.toLowerCase().includes(q.toLowerCase())||o.service.toLowerCase().includes(q.toLowerCase())) : orders;
+  if (!list.length) { b.innerHTML = '<tr><td colspan="7" class="empty">No orders found.</td></tr>'; return; }
+  b.innerHTML = list.slice().reverse().map((o,i) => `<tr>
+    <td><b>${o.client}</b><br><span style="color:var(--muted);font-size:11px">${o.email}</span></td>
+    <td>${o.service}</td>
+    <td style="max-width:180px;color:var(--muted)">${o.desc||'—'}</td>
+    <td>$${(+o.amount||0).toLocaleString()}</td>
+    <td><select class="select-status" onchange="updateStatus(${o.id},this.value)">
+      <option value="pending" ${o.status==='pending'?'selected':''}>Pending</option>
+      <option value="progress" ${o.status==='progress'?'selected':''}>In Progress</option>
+      <option value="done" ${o.status==='done'?'selected':''}>Completed</option>
+      <option value="cancelled" ${o.status==='cancelled'?'selected':''}>Cancelled</option>
+    </select></td>
+    <td>${o.date}</td>
+    <td><button class="btn btn-red" onclick="deleteOrder(${o.id})">✕</button></td></tr>`).join('');
+}
+
+function renderContacts(q='') {
+  const b = document.getElementById('contacts-body');
+  const list = q ? contacts.filter(c=>c.name.toLowerCase().includes(q.toLowerCase())||c.email.toLowerCase().includes(q.toLowerCase())) : contacts;
+  if (!list.length) { b.innerHTML = '<tr><td colspan="6" class="empty">No contact submissions yet.</td></tr>'; return; }
+  b.innerHTML = list.slice().reverse().map(c=>`<tr>
+    <td><b>${c.name}</b></td><td>${c.email}</td><td>${c.company||'—'}</td><td>${c.service}</td>
+    <td style="max-width:200px;color:var(--muted)">${c.message||'—'}</td><td>${c.date}</td></tr>`).join('');
+}
+
+function renderWaitlist() {
+  const b = document.getElementById('waitlist-body');
+  document.getElementById('wl-total-badge').textContent = waitlist.length + ' signups';
+  if (!waitlist.length) { b.innerHTML = '<tr><td colspan="4" class="empty">No waitlist signups yet.</td></tr>'; return; }
+  b.innerHTML = waitlist.map((w,i)=>`<tr>
+    <td style="color:var(--muted)">${i+1}</td>
+    <td><b>${w.name||'—'}</b></td><td>${w.email}</td>
+    <td>${w.joined ? new Date(w.joined).toLocaleDateString() : '—'}</td></tr>`).join('');
+}
+
+function renderRevenue() {
+  const paid = orders.filter(o=>o.status==='done');
+  const total = paid.reduce((s,o)=>s+(+o.amount||0),0);
+  const avg = paid.length ? Math.round(total/paid.length) : 0;
+  const pending = orders.filter(o=>o.status==='pending'||o.status==='progress').reduce((s,o)=>s+(+o.amount||0),0);
+  document.getElementById('rev-total').textContent = '$' + total.toLocaleString();
+  document.getElementById('rev-avg').textContent = '$' + avg.toLocaleString();
+  document.getElementById('rev-pending').textContent = '$' + pending.toLocaleString();
+  const services = ['Data Entry','Copywriting','Transcription','Multiple Services'];
+  const b = document.getElementById('rev-body');
+  b.innerHTML = services.map(s => {
+    const so = orders.filter(o=>o.service===s);
+    const rev = so.filter(o=>o.status==='done').reduce((x,o)=>x+(+o.amount||0),0);
+    const a = so.filter(o=>o.status==='done').length;
+    return `<tr><td><b>${s}</b></td><td>${so.length}</td><td>$${rev.toLocaleString()}</td><td>$${a?Math.round(rev/a):0}</td></tr>`;
+  }).join('');
+}
+
+function statusLabel(s) { return {pending:'Pending',progress:'In Progress',done:'Completed',cancelled:'Cancelled'}[s]||s; }
+
+function updateStatus(id, val) {
+  const o = orders.find(x=>x.id===id);
+  if (o) { o.status = val; saveData(); refreshAll(); }
+}
+
+function deleteOrder(id) {
+  if (!confirm('Delete this order?')) return;
+  orders = orders.filter(o=>o.id!==id); saveData(); refreshAll();
+}
+
+let editId = null;
+function openAddOrder() { editId = null; document.getElementById('add-order-modal').classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function saveOrder() {
+  const client = document.getElementById('ao-client').value.trim();
+  const email = document.getElementById('ao-email').value.trim();
+  if (!client || !email) { alert('Client name and email are required.'); return; }
+  const o = {
+    id: Date.now(), client, email,
+    service: document.getElementById('ao-service').value,
+    desc: document.getElementById('ao-desc').value,
+    amount: document.getElementById('ao-amount').value || 0,
+    status: document.getElementById('ao-status').value,
+    date: new Date().toISOString().slice(0,10)
+  };
+  orders.push(o); saveData(); refreshAll();
+  closeModal('add-order-modal');
+  ['ao-client','ao-email','ao-desc','ao-amount'].forEach(id=>document.getElementById(id).value='');
+}
+
+function showView(name, el) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  if (el) el.classList.add('active');
+  const titles = {dashboard:'Dashboard',orders:'Orders',contacts:'Contact Leads',waitlist:'Waitlist Signups',revenue:'Revenue'};
+  document.getElementById('view-title').textContent = titles[name]||name;
+  refreshAll();
+}
+
+document.getElementById('li-pass').addEventListener('keyup', e => { if(e.key==='Enter') doLogin(); });
+</script>
+</body>
+</html>

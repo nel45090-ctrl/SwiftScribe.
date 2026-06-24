@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SwiftScribe — Invoice & Proposal Generator</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--teal:#1D9E75;--teal-light:#E1F5EE;--teal-dark:#0F6E56;--bg:#F4F5F7;--card:#fff;--text:#1A1A18;--muted:#6B6B65;--hint:#9C9C96;--border:rgba(0,0,0,0.09);--border-mid:rgba(0,0,0,0.14);--radius:10px;--radius-lg:14px;--shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 18px;border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s}
+.btn-green{background:var(--teal);color:#fff}.btn-green:hover{background:var(--teal-dark)}
+.btn-outline{background:transparent;border:0.5px solid var(--border-mid);color:var(--text)}.btn-outline:hover{background:var(--bg)}
+.btn-ghost{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:6px 10px;border-radius:6px}.btn-ghost:hover{background:var(--bg);color:var(--text)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-danger{background:#FFF5F5;color:#822727;border:0.5px solid #FED7D7}.btn-danger:hover{background:#FED7D7}
+/* NAV */
+nav{background:#0F1A14;padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.nav-logo{font-size:17px;font-weight:700;color:#fff}.nav-logo span{color:#5DCAA5}
+.nav-sub{font-size:12px;color:rgba(255,255,255,.4);margin-left:8px}
+.nav-right{display:flex;gap:8px}
+/* LAYOUT */
+.app{display:grid;grid-template-columns:320px 1fr;min-height:calc(100vh - 56px)}
+.sidebar{background:var(--card);border-right:0.5px solid var(--border);overflow-y:auto;height:calc(100vh - 56px);position:sticky;top:56px}
+.sidebar-head{padding:1.25rem 1.5rem;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.sidebar-head h2{font-size:14px;font-weight:600}
+.inv-list{padding:0.75rem}
+.inv-item{padding:1rem 0.75rem;border-radius:var(--radius);cursor:pointer;transition:all .15s;margin-bottom:4px;border:0.5px solid transparent}
+.inv-item:hover{background:var(--bg)}
+.inv-item.active{background:var(--teal-light);border-color:rgba(29,158,117,.2)}
+.inv-item-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
+.inv-item-num{font-size:12px;font-weight:600;color:var(--text)}
+.inv-item-client{font-size:12px;color:var(--muted)}
+.inv-item-amount{font-size:12px;font-weight:600;color:var(--text)}
+.badge{font-size:10px;font-weight:500;padding:2px 8px;border-radius:10px}
+.badge-paid{background:#E1F5EE;color:#0F6E56}
+.badge-sent{background:#E8F4FD;color:#0C5460}
+.badge-draft{background:#F0F0EE;color:#6B6B65}
+.badge-overdue{background:#FFF5F5;color:#822727}
+.badge-proposal{background:#F3E8FF;color:#553C9A}
+.no-items{text-align:center;padding:2rem;color:var(--hint);font-size:13px}
+/* MAIN EDITOR */
+.main{padding:2rem;overflow-y:auto}
+.empty-main{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:400px;text-align:center;color:var(--hint)}
+.empty-main-icon{font-size:48px;margin-bottom:1rem}
+.empty-main h3{font-size:16px;font-weight:500;color:var(--muted);margin-bottom:0.5rem}
+.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:10px}
+.toolbar-left{display:flex;align-items:center;gap:8px}
+.toolbar-right{display:flex;gap:8px}
+/* INVOICE CARD */
+.inv-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;max-width:800px}
+/* INVOICE PREVIEW (print layout) */
+.inv-preview{padding:2.5rem}
+.inv-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2.5rem}
+.inv-brand{font-size:22px;font-weight:700;color:var(--text)}.inv-brand span{color:var(--teal)}
+.inv-brand-sub{font-size:12px;color:var(--muted);margin-top:3px}
+.inv-meta{text-align:right}
+.inv-type{font-size:22px;font-weight:700;color:var(--teal);letter-spacing:-0.5px;text-transform:uppercase;margin-bottom:6px}
+.inv-num{font-size:13px;color:var(--muted)}
+.inv-parties{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:2rem;padding:1.5rem;background:#FAFAF8;border-radius:var(--radius);border:0.5px solid var(--border)}
+.inv-party-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:600;margin-bottom:6px}
+.inv-party-name{font-size:15px;font-weight:600;color:var(--text);margin-bottom:3px}
+.inv-party-detail{font-size:12px;color:var(--muted);line-height:1.6}
+.inv-dates{display:flex;gap:2rem;margin-bottom:2rem;font-size:12px}
+.inv-date-item{display:flex;flex-direction:column;gap:2px}
+.inv-date-label{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.inv-date-val{font-size:14px;font-weight:500;color:var(--text)}
+/* LINE ITEMS TABLE */
+.items-table{width:100%;border-collapse:collapse;margin-bottom:1.5rem}
+.items-table th{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:8px 12px;text-align:left;border-bottom:0.5px solid var(--border);background:#FAFAFA}
+.items-table th:last-child,.items-table td:last-child{text-align:right}
+.items-table td{padding:12px;border-bottom:0.5px solid var(--border);font-size:13px;vertical-align:top}
+.items-table tr:last-child td{border-bottom:none}
+.item-desc{font-weight:500;color:var(--text)}
+.item-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.totals-section{display:flex;justify-content:flex-end;margin-bottom:2rem}
+.totals-box{width:260px}
+.totals-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px}
+.totals-row.subtotal{color:var(--muted)}
+.totals-row.tax{color:var(--muted)}
+.totals-row.total{font-size:16px;font-weight:700;color:var(--text);border-top:1px solid var(--border-mid);padding-top:12px;margin-top:6px}
+.inv-notes{padding:1.25rem;background:var(--teal-light);border-radius:var(--radius);font-size:12px;color:var(--teal-dark);line-height:1.6}
+.inv-notes strong{font-weight:600}
+.inv-footer-strip{background:#0F1A14;padding:1rem 2.5rem;display:flex;justify-content:space-between;align-items:center}
+.inv-footer-strip p{font-size:11px;color:rgba(255,255,255,.4)}
+.inv-footer-strip span{font-size:11px;color:rgba(255,255,255,.6)}
+/* EDITOR FORM */
+.edit-section{padding:1.5rem;border-top:0.5px solid var(--border)}
+.edit-section-title{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:1rem}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group.full{grid-column:1/-1}
+.form-group label{font-size:11px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.8px}
+.form-group input,.form-group select,.form-group textarea{padding:8px 10px;border:0.5px solid var(--border-mid);border-radius:8px;font-size:13px;color:var(--text);background:#fff;font-family:inherit}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-light)}
+/* LINE ITEMS EDITOR */
+.line-items-editor{padding:1.5rem;border-top:0.5px solid var(--border)}
+.li-row{display:grid;grid-template-columns:1fr 80px 80px 80px 36px;gap:8px;align-items:center;margin-bottom:8px}
+.li-input{padding:7px 10px;border:0.5px solid var(--border-mid);border-radius:8px;font-size:13px;color:var(--text);background:#fff;font-family:inherit;width:100%}
+.li-input:focus{outline:none;border-color:var(--teal)}
+.li-remove{width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:none;background:#FFF5F5;color:#822727;cursor:pointer;font-size:16px}
+.li-remove:hover{background:#FED7D7}
+.li-head{display:grid;grid-template-columns:1fr 80px 80px 80px 36px;gap:8px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-bottom:6px}
+@media print {
+  nav,.toolbar,.edit-section,.line-items-editor,.sidebar,.btn{display:none!important}
+  .app{display:block}
+  .main{padding:0}
+  .inv-card{border:none;border-radius:0;box-shadow:none}
+  .inv-preview{padding:2rem}
+}
+@media(max-width:800px){.app{grid-template-columns:1fr}.sidebar{display:none}.form-grid{grid-template-columns:1fr}.li-row{grid-template-columns:1fr 70px 70px 70px 30px}}
+</style>
+</head>
+<body>
+<nav>
+  <div style="display:flex;align-items:center">
+    <div class="nav-logo">Swift<span>Scribe</span></div>
+    <div class="nav-sub">Invoice & Proposal Generator</div>
+  </div>
+  <div class="nav-right">
+    <button class="btn btn-outline btn-sm" style="color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.15)" onclick="newDoc('invoice')">+ Invoice</button>
+    <button class="btn btn-green btn-sm" onclick="newDoc('proposal')">+ Proposal</button>
+  </div>
+</nav>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <h2>All Documents</h2>
+      <span id="doc-count" style="font-size:12px;color:var(--muted)">0 docs</span>
+    </div>
+    <div class="inv-list" id="inv-list"></div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main" id="main-area">
+    <div class="empty-main">
+      <div class="empty-main-icon">🧾</div>
+      <h3>No document selected</h3>
+      <p style="font-size:13px;margin-bottom:1.25rem">Create a new invoice or proposal to get started</p>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-outline" onclick="newDoc('invoice')">+ New Invoice</button>
+        <button class="btn btn-green" onclick="newDoc('proposal')">+ New Proposal</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let docs = JSON.parse(localStorage.getItem('ss_invoices') || '[]');
+let currentDocId = null;
+const TAX = 16; // 16% VAT Kenya
+
+// Seed demo
+if (!docs.length) {
+  docs = [{
+    id: 1001, type: 'invoice', status: 'paid',
+    clientName: 'Acme Corporation', clientEmail: 'billing@acme.com', clientAddress: 'Nairobi, Kenya',
+    issueDate: '2026-06-10', dueDate: '2026-06-24',
+    items: [
+      {desc:'Data Entry — Product Catalog (2,000 rows)',sub:'Delivered June 12',qty:1,rate:149,amount:149},
+      {desc:'Formatting & QA Review',sub:'Included in scope',qty:1,rate:0,amount:0}
+    ],
+    notes:'Thank you for your business! Pay via PayPal or M-Pesa Till No. 6109309.',
+    taxEnabled: true
+  },{
+    id: 1002, type: 'proposal', status: 'proposal',
+    clientName: 'BlogPro Media', clientEmail: 'hello@blogpro.com', clientAddress: 'Lagos, Nigeria',
+    issueDate: '2026-06-20', dueDate: '2026-07-04',
+    items: [
+      {desc:'Website Copywriting — Homepage, About, Services',sub:'3 pages, up to 500 words each',qty:1,rate:149,amount:149},
+      {desc:'Email Nurture Sequence',sub:'5 emails, onboarding flow',qty:1,rate:100,amount:100},
+    ],
+    notes:'This proposal is valid for 14 days. Prices are in USD. 50% deposit required to begin work.',
+    taxEnabled: false
+  }];
+  saveDocs();
+}
+
+function saveDocs() { localStorage.setItem('ss_invoices', JSON.stringify(docs)); }
+
+function newDoc(type) {
+  const id = Date.now();
+  const today = new Date().toISOString().slice(0,10);
+  const due = new Date(Date.now()+14*864e5).toISOString().slice(0,10);
+  const d = {
+    id, type, status: type==='proposal'?'proposal':'draft',
+    clientName:'', clientEmail:'', clientAddress:'',
+    issueDate: today, dueDate: due,
+    items:[{desc:'',sub:'',qty:1,rate:0,amount:0}],
+    notes: type==='proposal'
+      ? 'This proposal is valid for 14 days. A 50% deposit is required to begin work.'
+      : 'Payment is due within 14 days. Thank you for choosing SwiftScribe!',
+    taxEnabled: false
+  };
+  docs.unshift(d); saveDocs(); renderSidebar(); openDoc(id);
+}
+
+function openDoc(id) {
+  currentDocId = id;
+  const d = docs.find(x=>x.id===id);
+  if (!d) return;
+  renderSidebar();
+  renderEditor(d);
+}
+
+function renderSidebar() {
+  document.getElementById('doc-count').textContent = docs.length + ' docs';
+  const el = document.getElementById('inv-list');
+  if (!docs.length) { el.innerHTML = '<div class="no-items">No documents yet</div>'; return; }
+  el.innerHTML = docs.map(d => {
+    const sub = subtotal(d); const tot = d.taxEnabled ? sub*(1+TAX/100) : sub;
+    return `<div class="inv-item${d.id===currentDocId?' active':''}" onclick="openDoc(${d.id})">
+      <div class="inv-item-top">
+        <span class="inv-item-num">#${d.id}</span>
+        <span class="badge badge-${d.status}">${d.status.charAt(0).toUpperCase()+d.status.slice(1)}</span>
+      </div>
+      <div class="inv-item-client">${d.clientName||'(No client)'}</div>
+      <div style="display:flex;justify-content:space-between;margin-top:4px">
+        <span style="font-size:11px;color:var(--muted)">${d.type==='proposal'?'Proposal':'Invoice'} · ${d.issueDate}</span>
+        <span class="inv-item-amount">$${tot.toFixed(2)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function subtotal(d) { return (d.items||[]).reduce((s,i)=>s+(+i.rate||0)*(+i.qty||1),0); }
+
+function renderEditor(d) {
+  const sub = subtotal(d);
+  const tax = d.taxEnabled ? sub * TAX/100 : 0;
+  const total = sub + tax;
+  document.getElementById('main-area').innerHTML = `
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <select class="btn btn-outline" style="height:36px" onchange="updateField('status',this.value);updateField('type',document.getElementById('doc-type').value)">
+        ${['draft','sent','paid','overdue','proposal'].map(s=>`<option value="${s}"${d.status===s?' selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('')}
+      </select>
+      <select class="btn btn-outline" style="height:36px" id="doc-type" onchange="updateField('type',this.value)">
+        <option value="invoice"${d.type==='invoice'?' selected':''}>Invoice</option>
+        <option value="proposal"${d.type==='proposal'?' selected':''}>Proposal</option>
+      </select>
+    </div>
+    <div class="toolbar-right">
+      <button class="btn btn-danger btn-sm" onclick="deleteDoc(${d.id})">🗑 Delete</button>
+      <button class="btn btn-outline btn-sm" onclick="window.print()">🖨 Print / PDF</button>
+      <button class="btn btn-green btn-sm" onclick="markSent(${d.id})">📤 Mark as Sent</button>
+    </div>
+  </div>
+
+  <div class="inv-card">
+    <!-- PREVIEW -->
+    <div class="inv-preview">
+      <div class="inv-header">
+        <div>
+          <div class="inv-brand">Swift<span>Scribe</span></div>
+          <div class="inv-brand-sub">hello@swiftscribe.com · +254 791 303 993<br>Nairobi, Kenya</div>
+        </div>
+        <div class="inv-meta">
+          <div class="inv-type">${d.type}</div>
+          <div class="inv-num">#${d.id}</div>
+        </div>
+      </div>
+      <div class="inv-parties">
+        <div>
+          <div class="inv-party-label">From</div>
+          <div class="inv-party-name">SwiftScribe</div>
+          <div class="inv-party-detail">hello@swiftscribe.com<br>Nairobi, Kenya</div>
+        </div>
+        <div>
+          <div class="inv-party-label">Bill To</div>
+          <div class="inv-party-name" id="prev-client">${d.clientName||'—'}</div>
+          <div class="inv-party-detail" id="prev-details">${d.clientEmail||''}${d.clientAddress?'<br>'+d.clientAddress:''}</div>
+        </div>
+      </div>
+      <div class="inv-dates">
+        <div class="inv-date-item"><span class="inv-date-label">Issue Date</span><span class="inv-date-val">${d.issueDate}</span></div>
+        <div class="inv-date-item"><span class="inv-date-label">Due Date</span><span class="inv-date-val">${d.dueDate}</span></div>
+        <div class="inv-date-item"><span class="inv-date-label">Status</span><span class="inv-date-val"><span class="badge badge-${d.status}">${d.status}</span></span></div>
+      </div>
+      <table class="items-table">
+        <thead><tr><th>Description</th><th style="text-align:right">Qty</th><th style="text-align:right">Rate</th><th style="text-align:right">Amount</th></tr></thead>
+        <tbody>${(d.items||[]).map(i=>`<tr>
+          <td><div class="item-desc">${i.desc||'—'}</div>${i.sub?'<div class="item-sub">'+i.sub+'</div>':''}</td>
+          <td style="text-align:right">${+i.qty||1}</td>
+          <td style="text-align:right">$${(+i.rate||0).toFixed(2)}</td>
+          <td style="text-align:right">$${((+i.qty||1)*(+i.rate||0)).toFixed(2)}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+      <div class="totals-section">
+        <div class="totals-box">
+          <div class="totals-row subtotal"><span>Subtotal</span><span>$${sub.toFixed(2)}</span></div>
+          ${d.taxEnabled?`<div class="totals-row tax"><span>VAT (${TAX}%)</span><span>$${tax.toFixed(2)}</span></div>`:''}
+          <div class="totals-row total"><span>Total Due</span><span style="color:var(--teal)">$${total.toFixed(2)}</span></div>
+        </div>
+      </div>
+      ${d.notes?`<div class="inv-notes"><strong>Notes:</strong> ${d.notes}</div>`:''}
+    </div>
+    <div class="inv-footer-strip">
+      <p>SwiftScribe · hello@swiftscribe.com · Nairobi, Kenya</p>
+      <span>Thank you for your business 🙏</span>
+    </div>
+
+    <!-- EDITOR -->
+    <div class="edit-section">
+      <div class="edit-section-title">Client Details</div>
+      <div class="form-grid">
+        <div class="form-group"><label>Client Name</label><input value="${d.clientName}" oninput="updateField('clientName',this.value);document.getElementById('prev-client').textContent=this.value||'—'" placeholder="Company or person name"/></div>
+        <div class="form-group"><label>Client Email</label><input type="email" value="${d.clientEmail}" oninput="updateField('clientEmail',this.value)" placeholder="client@email.com"/></div>
+        <div class="form-group full"><label>Client Address</label><input value="${d.clientAddress}" oninput="updateField('clientAddress',this.value)" placeholder="City, Country"/></div>
+        <div class="form-group"><label>Issue Date</label><input type="date" value="${d.issueDate}" oninput="updateField('issueDate',this.value)"/></div>
+        <div class="form-group"><label>Due Date</label><input type="date" value="${d.dueDate}" oninput="updateField('dueDate',this.value)"/></div>
+        <div class="form-group full"><label>Notes / Payment Terms</label><input value="${d.notes||''}" oninput="updateField('notes',this.value)" placeholder="e.g. Payment due in 14 days…"/></div>
+        <div class="form-group" style="flex-direction:row;align-items:center;gap:10px">
+          <input type="checkbox" id="tax-toggle" ${d.taxEnabled?'checked':''} onchange="toggleTax(this.checked)" style="width:auto"/>
+          <label for="tax-toggle" style="text-transform:none;letter-spacing:0;font-size:13px;color:var(--text)">Add 16% VAT</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="line-items-editor">
+      <div class="edit-section-title">Line Items</div>
+      <div class="li-head"><span>Description</span><span>Qty</span><span>Rate ($)</span><span>Amount</span><span></span></div>
+      <div id="line-items-wrap">${(d.items||[]).map((item,i)=>`
+        <div class="li-row" id="li-${i}">
+          <input class="li-input" placeholder="Service description" value="${item.desc}" oninput="updateItem(${i},'desc',this.value)"/>
+          <input class="li-input" type="number" min="1" value="${item.qty||1}" oninput="updateItem(${i},'qty',this.value)"/>
+          <input class="li-input" type="number" min="0" step="0.01" value="${item.rate||''}" placeholder="0.00" oninput="updateItem(${i},'rate',this.value)"/>
+          <input class="li-input" readonly value="$${((+item.qty||1)*(+item.rate||0)).toFixed(2)}" style="background:#FAFAFA;color:var(--muted)"/>
+          <button class="li-remove" onclick="removeItem(${i})">×</button>
+        </div>`).join('')}
+      </div>
+      <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="addItem()">+ Add line item</button>
+    </div>
+  </div>`;
+}
+
+function updateField(field, val) {
+  const d = docs.find(x=>x.id===currentDocId);
+  if (!d) return;
+  d[field] = val; saveDocs(); renderSidebar();
+}
+
+function toggleTax(val) {
+  updateField('taxEnabled', val);
+  const d = docs.find(x=>x.id===currentDocId);
+  if (d) renderEditor(d);
+}
+
+function updateItem(idx, field, val) {
+  const d = docs.find(x=>x.id===currentDocId);
+  if (!d || !d.items[idx]) return;
+  d.items[idx][field] = val;
+  const qty = +d.items[idx].qty||1, rate = +d.items[idx].rate||0;
+  d.items[idx].amount = qty*rate;
+  saveDocs();
+  // update amount display live
+  const row = document.getElementById('li-'+idx);
+  if (row) { const inputs = row.querySelectorAll('input'); if(inputs[3]) inputs[3].value='$'+(qty*rate).toFixed(2); }
+  // re-render totals in preview
+  const d2 = docs.find(x=>x.id===currentDocId);
+  const sub = subtotal(d2); const tax = d2.taxEnabled?sub*TAX/100:0; const total=sub+tax;
+  ['subtotal','tax-row','grand-total'].forEach(id=>{const el=document.getElementById(id);if(el){}});
+  renderSidebar();
+}
+
+function addItem() {
+  const d = docs.find(x=>x.id===currentDocId);
+  if (!d) return;
+  d.items.push({desc:'',sub:'',qty:1,rate:0,amount:0});
+  saveDocs(); renderEditor(d);
+}
+
+function removeItem(idx) {
+  const d = docs.find(x=>x.id===currentDocId);
+  if (!d || d.items.length<=1) return;
+  d.items.splice(idx,1); saveDocs(); renderEditor(d);
+}
+
+function deleteDoc(id) {
+  if (!confirm('Delete this document permanently?')) return;
+  docs = docs.filter(d=>d.id!==id); currentDocId = null; saveDocs();
+  renderSidebar();
+  document.getElementById('main-area').innerHTML = `<div class="empty-main"><div class="empty-main-icon">🧾</div><h3>Select or create a document</h3><div style="display:flex;gap:10px;margin-top:1rem"><button class="btn btn-outline" onclick="newDoc('invoice')">+ Invoice</button><button class="btn btn-green" onclick="newDoc('proposal')">+ Proposal</button></div></div>`;
+}
+
+function markSent(id) {
+  const d = docs.find(x=>x.id===id);
+  if (d && d.status==='draft') { d.status='sent'; saveDocs(); renderSidebar(); renderEditor(d); }
+  else alert('Document status updated. In a live version this would email the invoice to the client.');
+}
+
+renderSidebar();
+</script>
+</body>
+</html>
