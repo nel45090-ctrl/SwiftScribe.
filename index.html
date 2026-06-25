@@ -843,3 +843,1221 @@ function initPayPal() {
 </script>
 </body>
 </html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SwiftScribe — Admin Dashboard</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--teal:#1D9E75;--teal-light:#E1F5EE;--teal-dark:#0F6E56;--bg:#F4F5F7;--card:#FFFFFF;--text:#1A1A18;--muted:#6B6B65;--hint:#9C9C96;--border:rgba(0,0,0,0.09);--red:#E53E3E;--yellow:#D69E2E;--blue:#3182CE;--radius:10px;--shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+/* LOGIN */
+.login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999}
+.login-box{background:var(--card);border-radius:16px;padding:2.5rem;width:340px;box-shadow:var(--shadow);border:0.5px solid var(--border)}
+.login-logo{font-size:22px;font-weight:700;color:var(--text);margin-bottom:0.25rem}.login-logo span{color:var(--teal)}
+.login-sub{font-size:13px;color:var(--muted);margin-bottom:2rem}
+.inp{width:100%;padding:10px 14px;border:0.5px solid rgba(0,0,0,0.15);border-radius:var(--radius);font-size:14px;background:#fff;color:var(--text);margin-bottom:12px}
+.inp:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-light)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s}
+.btn-green{background:var(--teal);color:#fff}.btn-green:hover{background:var(--teal-dark)}
+.btn-outline{background:transparent;border:0.5px solid rgba(0,0,0,0.15);color:var(--text)}.btn-outline:hover{background:var(--bg)}
+.btn-red{background:#FFF5F5;color:var(--red);border:0.5px solid #FED7D7}.btn-red:hover{background:#FED7D7}
+.err{color:var(--red);font-size:12px;margin-top:6px;display:none}
+/* LAYOUT */
+.app{display:none;min-height:100vh}
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:220px;background:#0F1A14;display:flex;flex-direction:column;z-index:50}
+.sidebar-logo{padding:1.5rem 1.25rem 1rem;font-size:18px;font-weight:700;color:#fff;border-bottom:0.5px solid rgba(255,255,255,0.08)}.sidebar-logo span{color:#5DCAA5}
+.sidebar-menu{flex:1;padding:1rem 0.75rem;display:flex;flex-direction:column;gap:2px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:rgba(255,255,255,0.55);cursor:pointer;transition:all .15s;font-size:13px}
+.nav-item:hover,.nav-item.active{background:rgba(255,255,255,0.08);color:#fff}
+.nav-item.active{background:rgba(29,158,117,0.2);color:#5DCAA5}
+.nav-icon{font-size:16px;width:20px;text-align:center}
+.sidebar-foot{padding:1rem 0.75rem;border-top:0.5px solid rgba(255,255,255,0.08)}
+.main{margin-left:220px;padding:2rem}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem}
+.topbar h1{font-size:20px;font-weight:600;letter-spacing:-0.5px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.avatar{width:34px;height:34px;background:var(--teal);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:600}
+/* CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+.stat-card{background:var(--card);border-radius:var(--radius);padding:1.25rem;border:0.5px solid var(--border)}
+.stat-card-label{font-size:12px;color:var(--muted);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:.8px}
+.stat-card-num{font-size:28px;font-weight:700;letter-spacing:-1px;color:var(--text)}
+.stat-card-sub{font-size:12px;color:var(--teal);margin-top:4px}
+/* TABLES */
+.section-card{background:var(--card);border-radius:var(--radius);border:0.5px solid var(--border);margin-bottom:1.5rem;overflow:hidden}
+.section-card-head{padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between;border-bottom:0.5px solid var(--border)}
+.section-card-head h2{font-size:15px;font-weight:600}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:10px 1.5rem;text-align:left;border-bottom:0.5px solid var(--border);background:#FAFAFA}
+td{padding:12px 1.5rem;border-bottom:0.5px solid var(--border);font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#FAFAF8}
+.badge{display:inline-flex;align-items:center;font-size:11px;font-weight:500;padding:3px 10px;border-radius:12px}
+.badge-done{background:#E1F5EE;color:#0F6E56}
+.badge-progress{background:#FFF3CD;color:#856404}
+.badge-pending{background:#E8F4FD;color:#0C5460}
+.badge-cancelled{background:#FFF5F5;color:#822727}
+.select-status{font-size:12px;border:0.5px solid var(--border);border-radius:6px;padding:4px 8px;background:#fff;color:var(--text);cursor:pointer}
+/* VIEWS */
+.view{display:none}.view.active{display:block}
+.empty{text-align:center;padding:3rem;color:var(--hint);font-size:13px}
+.search-bar{padding:8px 12px;border:0.5px solid var(--border);border-radius:var(--radius);font-size:13px;width:220px;background:#fff;color:var(--text)}
+.search-bar:focus{outline:none;border-color:var(--teal)}
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:200}
+.modal-bg.open{display:flex}
+.modal{background:var(--card);border-radius:16px;padding:2rem;width:500px;max-width:95vw;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+.modal h2{font-size:17px;font-weight:600;margin-bottom:1.25rem}
+.form-group{margin-bottom:1rem}
+.form-group label{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 12px;border:0.5px solid rgba(0,0,0,0.15);border-radius:var(--radius);font-size:13px;background:#fff;color:var(--text);font-family:inherit}
+.form-group textarea{height:80px;resize:vertical}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--teal)}
+.modal-foot{display:flex;gap:10px;justify-content:flex-end;margin-top:1.5rem;padding-top:1.25rem;border-top:0.5px solid var(--border)}
+@media(max-width:900px){.sidebar{display:none}.main{margin-left:0}.stats-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-screen" id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">Swift<span>Scribe</span></div>
+    <div class="login-sub">Admin Dashboard — sign in to continue</div>
+    <input class="inp" type="text" id="li-user" placeholder="Username" value="admin"/>
+    <input class="inp" type="password" id="li-pass" placeholder="Password" />
+    <div class="err" id="li-err">Incorrect credentials. Try admin / admin123</div>
+    <button class="btn btn-green" style="width:100%;justify-content:center" onclick="doLogin()">Sign in →</button>
+    <p style="font-size:11px;color:var(--hint);margin-top:12px;text-align:center">Default: admin / admin123</p>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+  <div class="sidebar">
+    <div class="sidebar-logo">Swift<span>Scribe</span></div>
+    <div class="sidebar-menu">
+      <div class="nav-item active" onclick="showView('dashboard',this)"><span class="nav-icon">📊</span> Dashboard</div>
+      <div class="nav-item" onclick="showView('orders',this)"><span class="nav-icon">📋</span> Orders</div>
+      <div class="nav-item" onclick="showView('contacts',this)"><span class="nav-icon">✉️</span> Contact Leads</div>
+      <div class="nav-item" onclick="showView('waitlist',this)"><span class="nav-icon">⏳</span> Waitlist</div>
+      <div class="nav-item" onclick="showView('revenue',this)"><span class="nav-icon">💰</span> Revenue</div>
+    </div>
+    <div class="sidebar-foot">
+      <div class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span> Sign out</div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <h1 id="view-title">Dashboard</h1>
+      <div class="topbar-right">
+        <button class="btn btn-green" onclick="openAddOrder()">+ New Order</button>
+        <div class="avatar">A</div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD VIEW -->
+    <div class="view active" id="view-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card-label">Total Orders</div>
+          <div class="stat-card-num" id="st-total">0</div>
+          <div class="stat-card-sub">All time</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">In Progress</div>
+          <div class="stat-card-num" id="st-progress">0</div>
+          <div class="stat-card-sub">Active jobs</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Revenue</div>
+          <div class="stat-card-num" id="st-revenue">$0</div>
+          <div class="stat-card-sub">Paid orders</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Waitlist</div>
+          <div class="stat-card-num" id="st-waitlist">0</div>
+          <div class="stat-card-sub">Signups</div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-card-head"><h2>Recent Orders</h2><button class="btn btn-outline" onclick="showView('orders',null)">View all</button></div>
+        <table><thead><tr><th>Client</th><th>Service</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody id="dash-orders-body"><tr><td colspan="5" class="empty">No orders yet. Add your first order above.</td></tr></tbody></table>
+      </div>
+
+      <div class="section-card">
+        <div class="section-card-head"><h2>Recent Leads</h2><button class="btn btn-outline" onclick="showView('contacts',null)">View all</button></div>
+        <table><thead><tr><th>Name</th><th>Email</th><th>Service</th><th>Date</th></tr></thead>
+        <tbody id="dash-contacts-body"><tr><td colspan="4" class="empty">No contact submissions yet.</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <!-- ORDERS VIEW -->
+    <div class="view" id="view-orders">
+      <div class="section-card">
+        <div class="section-card-head">
+          <h2>All Orders</h2>
+          <div style="display:flex;gap:10px;align-items:center">
+            <input class="search-bar" placeholder="Search orders…" oninput="renderOrders(this.value)"/>
+            <button class="btn btn-green" onclick="openAddOrder()">+ Add Order</button>
+          </div>
+        </div>
+        <table><thead><tr><th>Client</th><th>Service</th><th>Description</th><th>Amount</th><th>Status</th><th>Date</th><th></th></tr></thead>
+        <tbody id="orders-body"></tbody></table>
+      </div>
+    </div>
+
+    <!-- CONTACTS VIEW -->
+    <div class="view" id="view-contacts">
+      <div class="section-card">
+        <div class="section-card-head"><h2>Contact Leads</h2><input class="search-bar" placeholder="Search…" oninput="renderContacts(this.value)"/></div>
+        <table><thead><tr><th>Name</th><th>Email</th><th>Company</th><th>Service</th><th>Message</th><th>Date</th></tr></thead>
+        <tbody id="contacts-body"></tbody></table>
+      </div>
+    </div>
+
+    <!-- WAITLIST VIEW -->
+    <div class="view" id="view-waitlist">
+      <div class="section-card">
+        <div class="section-card-head"><h2>Waitlist Signups</h2><span id="wl-total-badge" style="font-size:12px;color:var(--teal)"></span></div>
+        <table><thead><tr><th>#</th><th>Name</th><th>Email</th><th>Joined</th></tr></thead>
+        <tbody id="waitlist-body"></tbody></table>
+      </div>
+    </div>
+
+    <!-- REVENUE VIEW -->
+    <div class="view" id="view-revenue">
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="stat-card"><div class="stat-card-label">Total Revenue</div><div class="stat-card-num" id="rev-total">$0</div><div class="stat-card-sub">All paid orders</div></div>
+        <div class="stat-card"><div class="stat-card-label">Avg Order Value</div><div class="stat-card-num" id="rev-avg">$0</div><div class="stat-card-sub">Per completed job</div></div>
+        <div class="stat-card"><div class="stat-card-label">Pending Payments</div><div class="stat-card-num" id="rev-pending">$0</div><div class="stat-card-sub">Awaiting payment</div></div>
+      </div>
+      <div class="section-card">
+        <div class="section-card-head"><h2>Revenue by Service</h2></div>
+        <table><thead><tr><th>Service</th><th>Orders</th><th>Revenue</th><th>Avg per Order</th></tr></thead>
+        <tbody id="rev-body"></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD ORDER MODAL -->
+<div class="modal-bg" id="add-order-modal">
+  <div class="modal">
+    <h2>Add New Order</h2>
+    <div class="form-group"><label>Client Name</label><input id="ao-client" placeholder="Jane Smith"/></div>
+    <div class="form-group"><label>Client Email</label><input type="email" id="ao-email" placeholder="jane@company.com"/></div>
+    <div class="form-group"><label>Service</label>
+      <select id="ao-service"><option>Data Entry</option><option>Copywriting</option><option>Transcription</option><option>Multiple Services</option></select>
+    </div>
+    <div class="form-group"><label>Description</label><textarea id="ao-desc" placeholder="Brief description of the job…"></textarea></div>
+    <div class="form-group"><label>Amount ($)</label><input type="number" id="ao-amount" placeholder="149"/></div>
+    <div class="form-group"><label>Status</label>
+      <select id="ao-status"><option value="pending">Pending</option><option value="progress">In Progress</option><option value="done">Completed</option><option value="cancelled">Cancelled</option></select>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('add-order-modal')">Cancel</button>
+      <button class="btn btn-green" onclick="saveOrder()">Save Order</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PASS = 'admin123'; const USER = 'admin';
+let orders = [], contacts = [], waitlist = [];
+
+function doLogin() {
+  const u = document.getElementById('li-user').value.trim();
+  const p = document.getElementById('li-pass').value.trim();
+  if (u === USER && p === PASS) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadData(); refreshAll();
+  } else {
+    document.getElementById('li-err').style.display = 'block';
+  }
+}
+document.getElementById('li-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+function logout() { document.getElementById('app').style.display='none'; document.getElementById('login-screen').style.display='flex'; }
+
+function loadData() {
+  orders = JSON.parse(localStorage.getItem('ss_orders') || '[]');
+  contacts = JSON.parse(localStorage.getItem('ss_contacts') || '[]');
+  waitlist = JSON.parse(localStorage.getItem('ss_waitlist') || '[]');
+  // seed demo data
+  if (!orders.length) {
+    orders = [
+      {id:1,client:'Acme Corp',email:'acme@test.com',service:'Data Entry',desc:'Product catalog 2000 rows',amount:149,status:'done',date:'2026-06-10'},
+      {id:2,client:'BlogPro Media',email:'bp@test.com',service:'Copywriting',desc:'Homepage + 3 blog posts',amount:349,status:'progress',date:'2026-06-18'},
+      {id:3,client:'LegalEdge',email:'le@test.com',service:'Transcription',desc:'3 deposition files 2hrs each',amount:149,status:'pending',date:'2026-06-22'},
+    ];
+    localStorage.setItem('ss_orders', JSON.stringify(orders));
+  }
+  if (!contacts.length) {
+    contacts = [
+      {name:'Sarah K',email:'sarah@startup.io',company:'Startup.io',service:'Copywriting',message:'Need website copy for launch',date:'2026-06-20'},
+      {name:'Tom Odhiambo',email:'tom@realty.ke',company:'Realty Ke',service:'Data Entry',message:'Property listings database entry',date:'2026-06-21'},
+    ];
+    localStorage.setItem('ss_contacts', JSON.stringify(contacts));
+  }
+}
+
+function saveData() { localStorage.setItem('ss_orders', JSON.stringify(orders)); }
+
+function refreshAll() {
+  const total = orders.length;
+  const inProg = orders.filter(o=>o.status==='progress').length;
+  const revenue = orders.filter(o=>o.status==='done').reduce((s,o)=>s+(+o.amount||0),0);
+  document.getElementById('st-total').textContent = total;
+  document.getElementById('st-progress').textContent = inProg;
+  document.getElementById('st-revenue').textContent = '$' + revenue.toLocaleString();
+  document.getElementById('st-waitlist').textContent = waitlist.length;
+  renderDashOrders(); renderDashContacts(); renderOrders(); renderContacts(); renderWaitlist(); renderRevenue();
+}
+
+function renderDashOrders() {
+  const b = document.getElementById('dash-orders-body');
+  const rows = orders.slice(-5).reverse();
+  if (!rows.length) { b.innerHTML = '<tr><td colspan="5" class="empty">No orders yet.</td></tr>'; return; }
+  b.innerHTML = rows.map(o => `<tr>
+    <td><b>${o.client}</b></td><td>${o.service}</td>
+    <td>$${(+o.amount||0).toLocaleString()}</td>
+    <td><span class="badge badge-${o.status==='done'?'done':o.status==='progress'?'progress':o.status==='cancelled'?'cancelled':'pending'}">${statusLabel(o.status)}</span></td>
+    <td>${o.date}</td></tr>`).join('');
+}
+
+function renderDashContacts() {
+  const b = document.getElementById('dash-contacts-body');
+  if (!contacts.length) { b.innerHTML = '<tr><td colspan="4" class="empty">No leads yet.</td></tr>'; return; }
+  b.innerHTML = contacts.slice(-5).reverse().map(c => `<tr>
+    <td><b>${c.name}</b></td><td>${c.email}</td><td>${c.service}</td><td>${c.date}</td></tr>`).join('');
+}
+
+function renderOrders(q='') {
+  const b = document.getElementById('orders-body');
+  const list = q ? orders.filter(o=>o.client.toLowerCase().includes(q.toLowerCase())||o.service.toLowerCase().includes(q.toLowerCase())) : orders;
+  if (!list.length) { b.innerHTML = '<tr><td colspan="7" class="empty">No orders found.</td></tr>'; return; }
+  b.innerHTML = list.slice().reverse().map((o,i) => `<tr>
+    <td><b>${o.client}</b><br><span style="color:var(--muted);font-size:11px">${o.email}</span></td>
+    <td>${o.service}</td>
+    <td style="max-width:180px;color:var(--muted)">${o.desc||'—'}</td>
+    <td>$${(+o.amount||0).toLocaleString()}</td>
+    <td><select class="select-status" onchange="updateStatus(${o.id},this.value)">
+      <option value="pending" ${o.status==='pending'?'selected':''}>Pending</option>
+      <option value="progress" ${o.status==='progress'?'selected':''}>In Progress</option>
+      <option value="done" ${o.status==='done'?'selected':''}>Completed</option>
+      <option value="cancelled" ${o.status==='cancelled'?'selected':''}>Cancelled</option>
+    </select></td>
+    <td>${o.date}</td>
+    <td><button class="btn btn-red" onclick="deleteOrder(${o.id})">✕</button></td></tr>`).join('');
+}
+
+function renderContacts(q='') {
+  const b = document.getElementById('contacts-body');
+  const list = q ? contacts.filter(c=>c.name.toLowerCase().includes(q.toLowerCase())||c.email.toLowerCase().includes(q.toLowerCase())) : contacts;
+  if (!list.length) { b.innerHTML = '<tr><td colspan="6" class="empty">No contact submissions yet.</td></tr>'; return; }
+  b.innerHTML = list.slice().reverse().map(c=>`<tr>
+    <td><b>${c.name}</b></td><td>${c.email}</td><td>${c.company||'—'}</td><td>${c.service}</td>
+    <td style="max-width:200px;color:var(--muted)">${c.message||'—'}</td><td>${c.date}</td></tr>`).join('');
+}
+
+function renderWaitlist() {
+  const b = document.getElementById('waitlist-body');
+  document.getElementById('wl-total-badge').textContent = waitlist.length + ' signups';
+  if (!waitlist.length) { b.innerHTML = '<tr><td colspan="4" class="empty">No waitlist signups yet.</td></tr>'; return; }
+  b.innerHTML = waitlist.map((w,i)=>`<tr>
+    <td style="color:var(--muted)">${i+1}</td>
+    <td><b>${w.name||'—'}</b></td><td>${w.email}</td>
+    <td>${w.joined ? new Date(w.joined).toLocaleDateString() : '—'}</td></tr>`).join('');
+}
+
+function renderRevenue() {
+  const paid = orders.filter(o=>o.status==='done');
+  const total = paid.reduce((s,o)=>s+(+o.amount||0),0);
+  const avg = paid.length ? Math.round(total/paid.length) : 0;
+  const pending = orders.filter(o=>o.status==='pending'||o.status==='progress').reduce((s,o)=>s+(+o.amount||0),0);
+  document.getElementById('rev-total').textContent = '$' + total.toLocaleString();
+  document.getElementById('rev-avg').textContent = '$' + avg.toLocaleString();
+  document.getElementById('rev-pending').textContent = '$' + pending.toLocaleString();
+  const services = ['Data Entry','Copywriting','Transcription','Multiple Services'];
+  const b = document.getElementById('rev-body');
+  b.innerHTML = services.map(s => {
+    const so = orders.filter(o=>o.service===s);
+    const rev = so.filter(o=>o.status==='done').reduce((x,o)=>x+(+o.amount||0),0);
+    const a = so.filter(o=>o.status==='done').length;
+    return `<tr><td><b>${s}</b></td><td>${so.length}</td><td>$${rev.toLocaleString()}</td><td>$${a?Math.round(rev/a):0}</td></tr>`;
+  }).join('');
+}
+
+function statusLabel(s) { return {pending:'Pending',progress:'In Progress',done:'Completed',cancelled:'Cancelled'}[s]||s; }
+
+function updateStatus(id, val) {
+  const o = orders.find(x=>x.id===id);
+  if (o) { o.status = val; saveData(); refreshAll(); }
+}
+
+function deleteOrder(id) {
+  if (!confirm('Delete this order?')) return;
+  orders = orders.filter(o=>o.id!==id); saveData(); refreshAll();
+}
+
+let editId = null;
+function openAddOrder() { editId = null; document.getElementById('add-order-modal').classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function saveOrder() {
+  const client = document.getElementById('ao-client').value.trim();
+  const email = document.getElementById('ao-email').value.trim();
+  if (!client || !email) { alert('Client name and email are required.'); return; }
+  const o = {
+    id: Date.now(), client, email,
+    service: document.getElementById('ao-service').value,
+    desc: document.getElementById('ao-desc').value,
+    amount: document.getElementById('ao-amount').value || 0,
+    status: document.getElementById('ao-status').value,
+    date: new Date().toISOString().slice(0,10)
+  };
+  orders.push(o); saveData(); refreshAll();
+  closeModal('add-order-modal');
+  ['ao-client','ao-email','ao-desc','ao-amount'].forEach(id=>document.getElementById(id).value='');
+}
+
+function showView(name, el) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  if (el) el.classList.add('active');
+  const titles = {dashboard:'Dashboard',orders:'Orders',contacts:'Contact Leads',waitlist:'Waitlist Signups',revenue:'Revenue'};
+  document.getElementById('view-title').textContent = titles[name]||name;
+  refreshAll();
+}
+
+document.getElementById('li-pass').addEventListener('keyup', e => { if(e.key==='Enter') doLogin(); });
+</script>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SwiftScribe — Invoice & Proposal Generator</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--teal:#1D9E75;--teal-light:#E1F5EE;--teal-dark:#0F6E56;--bg:#F4F5F7;--card:#fff;--text:#1A1A18;--muted:#6B6B65;--hint:#9C9C96;--border:rgba(0,0,0,0.09);--border-mid:rgba(0,0,0,0.14);--radius:10px;--radius-lg:14px;--shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 18px;border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s}
+.btn-green{background:var(--teal);color:#fff}.btn-green:hover{background:var(--teal-dark)}
+.btn-outline{background:transparent;border:0.5px solid var(--border-mid);color:var(--text)}.btn-outline:hover{background:var(--bg)}
+.btn-ghost{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:6px 10px;border-radius:6px}.btn-ghost:hover{background:var(--bg);color:var(--text)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-danger{background:#FFF5F5;color:#822727;border:0.5px solid #FED7D7}.btn-danger:hover{background:#FED7D7}
+/* NAV */
+nav{background:#0F1A14;padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.nav-logo{font-size:17px;font-weight:700;color:#fff}.nav-logo span{color:#5DCAA5}
+.nav-sub{font-size:12px;color:rgba(255,255,255,.4);margin-left:8px}
+.nav-right{display:flex;gap:8px}
+/* LAYOUT */
+.app{display:grid;grid-template-columns:320px 1fr;min-height:calc(100vh - 56px)}
+.sidebar{background:var(--card);border-right:0.5px solid var(--border);overflow-y:auto;height:calc(100vh - 56px);position:sticky;top:56px}
+.sidebar-head{padding:1.25rem 1.5rem;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.sidebar-head h2{font-size:14px;font-weight:600}
+.inv-list{padding:0.75rem}
+.inv-item{padding:1rem 0.75rem;border-radius:var(--radius);cursor:pointer;transition:all .15s;margin-bottom:4px;border:0.5px solid transparent}
+.inv-item:hover{background:var(--bg)}
+.inv-item.active{background:var(--teal-light);border-color:rgba(29,158,117,.2)}
+.inv-item-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
+.inv-item-num{font-size:12px;font-weight:600;color:var(--text)}
+.inv-item-client{font-size:12px;color:var(--muted)}
+.inv-item-amount{font-size:12px;font-weight:600;color:var(--text)}
+.badge{font-size:10px;font-weight:500;padding:2px 8px;border-radius:10px}
+.badge-paid{background:#E1F5EE;color:#0F6E56}
+.badge-sent{background:#E8F4FD;color:#0C5460}
+.badge-draft{background:#F0F0EE;color:#6B6B65}
+.badge-overdue{background:#FFF5F5;color:#822727}
+.badge-proposal{background:#F3E8FF;color:#553C9A}
+.no-items{text-align:center;padding:2rem;color:var(--hint);font-size:13px}
+/* MAIN EDITOR */
+.main{padding:2rem;overflow-y:auto}
+.empty-main{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:400px;text-align:center;color:var(--hint)}
+.empty-main-icon{font-size:48px;margin-bottom:1rem}
+.empty-main h3{font-size:16px;font-weight:500;color:var(--muted);margin-bottom:0.5rem}
+.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:10px}
+.toolbar-left{display:flex;align-items:center;gap:8px}
+.toolbar-right{display:flex;gap:8px}
+/* INVOICE CARD */
+.inv-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;max-width:800px}
+/* INVOICE PREVIEW (print layout) */
+.inv-preview{padding:2.5rem}
+.inv-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2.5rem}
+.inv-brand{font-size:22px;font-weight:700;color:var(--text)}.inv-brand span{color:var(--teal)}
+.inv-brand-sub{font-size:12px;color:var(--muted);margin-top:3px}
+.inv-meta{text-align:right}
+.inv-type{font-size:22px;font-weight:700;color:var(--teal);letter-spacing:-0.5px;text-transform:uppercase;margin-bottom:6px}
+.inv-num{font-size:13px;color:var(--muted)}
+.inv-parties{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:2rem;padding:1.5rem;background:#FAFAF8;border-radius:var(--radius);border:0.5px solid var(--border)}
+.inv-party-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:600;margin-bottom:6px}
+.inv-party-name{font-size:15px;font-weight:600;color:var(--text);margin-bottom:3px}
+.inv-party-detail{font-size:12px;color:var(--muted);line-height:1.6}
+.inv-dates{display:flex;gap:2rem;margin-bottom:2rem;font-size:12px}
+.inv-date-item{display:flex;flex-direction:column;gap:2px}
+.inv-date-label{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.inv-date-val{font-size:14px;font-weight:500;color:var(--text)}
+/* LINE ITEMS TABLE */
+.items-table{width:100%;border-collapse:collapse;margin-bottom:1.5rem}
+.items-table th{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:8px 12px;text-align:left;border-bottom:0.5px solid var(--border);background:#FAFAFA}
+.items-table th:last-child,.items-table td:last-child{text-align:right}
+.items-table td{padding:12px;border-bottom:0.5px solid var(--border);font-size:13px;vertical-align:top}
+.items-table tr:last-child td{border-bottom:none}
+.item-desc{font-weight:500;color:var(--text)}
+.item-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.totals-section{display:flex;justify-content:flex-end;margin-bottom:2rem}
+.totals-box{width:260px}
+.totals-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px}
+.totals-row.subtotal{color:var(--muted)}
+.totals-row.tax{color:var(--muted)}
+.totals-row.total{font-size:16px;font-weight:700;color:var(--text);border-top:1px solid var(--border-mid);padding-top:12px;margin-top:6px}
+.inv-notes{padding:1.25rem;background:var(--teal-light);border-radius:var(--radius);font-size:12px;color:var(--teal-dark);line-height:1.6}
+.inv-notes strong{font-weight:600}
+.inv-footer-strip{background:#0F1A14;padding:1rem 2.5rem;display:flex;justify-content:space-between;align-items:center}
+.inv-footer-strip p{font-size:11px;color:rgba(255,255,255,.4)}
+.inv-footer-strip span{font-size:11px;color:rgba(255,255,255,.6)}
+/* EDITOR FORM */
+.edit-section{padding:1.5rem;border-top:0.5px solid var(--border)}
+.edit-section-title{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:1rem}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group.full{grid-column:1/-1}
+.form-group label{font-size:11px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.8px}
+.form-group input,.form-group select,.form-group textarea{padding:8px 10px;border:0.5px solid var(--border-mid);border-radius:8px;font-size:13px;color:var(--text);background:#fff;font-family:inherit}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-light)}
+/* LINE ITEMS EDITOR */
+.line-items-editor{padding:1.5rem;border-top:0.5px solid var(--border)}
+.li-row{display:grid;grid-template-columns:1fr 80px 80px 80px 36px;gap:8px;align-items:center;margin-bottom:8px}
+.li-input{padding:7px 10px;border:0.5px solid var(--border-mid);border-radius:8px;font-size:13px;color:var(--text);background:#fff;font-family:inherit;width:100%}
+.li-input:focus{outline:none;border-color:var(--teal)}
+.li-remove{width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:none;background:#FFF5F5;color:#822727;cursor:pointer;font-size:16px}
+.li-remove:hover{background:#FED7D7}
+.li-head{display:grid;grid-template-columns:1fr 80px 80px 80px 36px;gap:8px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-bottom:6px}
+@media print {
+  nav,.toolbar,.edit-section,.line-items-editor,.sidebar,.btn{display:none!important}
+  .app{display:block}
+  .main{padding:0}
+  .inv-card{border:none;border-radius:0;box-shadow:none}
+  .inv-preview{padding:2rem}
+}
+@media(max-width:800px){.app{grid-template-columns:1fr}.sidebar{display:none}.form-grid{grid-template-columns:1fr}.li-row{grid-template-columns:1fr 70px 70px 70px 30px}}
+</style>
+</head>
+<body>
+<nav>
+  <div style="display:flex;align-items:center">
+    <div class="nav-logo">Swift<span>Scribe</span></div>
+    <div class="nav-sub">Invoice & Proposal Generator</div>
+  </div>
+  <div class="nav-right">
+    <button class="btn btn-outline btn-sm" style="color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.15)" onclick="newDoc('invoice')">+ Invoice</button>
+    <button class="btn btn-green btn-sm" onclick="newDoc('proposal')">+ Proposal</button>
+  </div>
+</nav>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <h2>All Documents</h2>
+      <span id="doc-count" style="font-size:12px;color:var(--muted)">0 docs</span>
+    </div>
+    <div class="inv-list" id="inv-list"></div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main" id="main-area">
+    <div class="empty-main">
+      <div class="empty-main-icon">🧾</div>
+      <h3>No document selected</h3>
+      <p style="font-size:13px;margin-bottom:1.25rem">Create a new invoice or proposal to get started</p>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-outline" onclick="newDoc('invoice')">+ New Invoice</button>
+        <button class="btn btn-green" onclick="newDoc('proposal')">+ New Proposal</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let docs = JSON.parse(localStorage.getItem('ss_invoices') || '[]');
+let currentDocId = null;
+const TAX = 16; // 16% VAT Kenya
+
+// Seed demo
+if (!docs.length) {
+  docs = [{
+    id: 1001, type: 'invoice', status: 'paid',
+    clientName: 'Acme Corporation', clientEmail: 'billing@acme.com', clientAddress: 'Nairobi, Kenya',
+    issueDate: '2026-06-10', dueDate: '2026-06-24',
+    items: [
+      {desc:'Data Entry — Product Catalog (2,000 rows)',sub:'Delivered June 12',qty:1,rate:149,amount:149},
+      {desc:'Formatting & QA Review',sub:'Included in scope',qty:1,rate:0,amount:0}
+    ],
+    notes:'Thank you for your business! Pay via PayPal or M-Pesa Till No. 6109309.',
+    taxEnabled: true
+  },{
+    id: 1002, type: 'proposal', status: 'proposal',
+    clientName: 'BlogPro Media', clientEmail: 'hello@blogpro.com', clientAddress: 'Lagos, Nigeria',
+    issueDate: '2026-06-20', dueDate: '2026-07-04',
+    items: [
+      {desc:'Website Copywriting — Homepage, About, Services',sub:'3 pages, up to 500 words each',qty:1,rate:149,amount:149},
+      {desc:'Email Nurture Sequence',sub:'5 emails, onboarding flow',qty:1,rate:100,amount:100},
+    ],
+    notes:'This proposal is valid for 14 days. Prices are in USD. 50% deposit required to begin work.',
+    taxEnabled: false
+  }];
+  saveDocs();
+}
+
+function saveDocs() { localStorage.setItem('ss_invoices', JSON.stringify(docs)); }
+
+function newDoc(type) {
+  const id = Date.now();
+  const today = new Date().toISOString().slice(0,10);
+  const due = new Date(Date.now()+14*864e5).toISOString().slice(0,10);
+  const d = {
+    id, type, status: type==='proposal'?'proposal':'draft',
+    clientName:'', clientEmail:'', clientAddress:'',
+    issueDate: today, dueDate: due,
+    items:[{desc:'',sub:'',qty:1,rate:0,amount:0}],
+    notes: type==='proposal'
+      ? 'This proposal is valid for 14 days. A 50% deposit is required to begin work.'
+      : 'Payment is due within 14 days. Thank you for choosing SwiftScribe!',
+    taxEnabled: false
+  };
+  docs.unshift(d); saveDocs(); renderSidebar(); openDoc(id);
+}
+
+function openDoc(id) {
+  currentDocId = id;
+  const d = docs.find(x=>x.id===id);
+  if (!d) return;
+  renderSidebar();
+  renderEditor(d);
+}
+
+function renderSidebar() {
+  document.getElementById('doc-count').textContent = docs.length + ' docs';
+  const el = document.getElementById('inv-list');
+  if (!docs.length) { el.innerHTML = '<div class="no-items">No documents yet</div>'; return; }
+  el.innerHTML = docs.map(d => {
+    const sub = subtotal(d); const tot = d.taxEnabled ? sub*(1+TAX/100) : sub;
+    return `<div class="inv-item${d.id===currentDocId?' active':''}" onclick="openDoc(${d.id})">
+      <div class="inv-item-top">
+        <span class="inv-item-num">#${d.id}</span>
+        <span class="badge badge-${d.status}">${d.status.charAt(0).toUpperCase()+d.status.slice(1)}</span>
+      </div>
+      <div class="inv-item-client">${d.clientName||'(No client)'}</div>
+      <div style="display:flex;justify-content:space-between;margin-top:4px">
+        <span style="font-size:11px;color:var(--muted)">${d.type==='proposal'?'Proposal':'Invoice'} · ${d.issueDate}</span>
+        <span class="inv-item-amount">$${tot.toFixed(2)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function subtotal(d) { return (d.items||[]).reduce((s,i)=>s+(+i.rate||0)*(+i.qty||1),0); }
+
+function renderEditor(d) {
+  const sub = subtotal(d);
+  const tax = d.taxEnabled ? sub * TAX/100 : 0;
+  const total = sub + tax;
+  document.getElementById('main-area').innerHTML = `
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <select class="btn btn-outline" style="height:36px" onchange="updateField('status',this.value);updateField('type',document.getElementById('doc-type').value)">
+        ${['draft','sent','paid','overdue','proposal'].map(s=>`<option value="${s}"${d.status===s?' selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('')}
+      </select>
+      <select class="btn btn-outline" style="height:36px" id="doc-type" onchange="updateField('type',this.value)">
+        <option value="invoice"${d.type==='invoice'?' selected':''}>Invoice</option>
+        <option value="proposal"${d.type==='proposal'?' selected':''}>Proposal</option>
+      </select>
+    </div>
+    <div class="toolbar-right">
+      <button class="btn btn-danger btn-sm" onclick="deleteDoc(${d.id})">🗑 Delete</button>
+      <button class="btn btn-outline btn-sm" onclick="window.print()">🖨 Print / PDF</button>
+      <button class="btn btn-green btn-sm" onclick="markSent(${d.id})">📤 Mark as Sent</button>
+    </div>
+  </div>
+
+  <div class="inv-card">
+    <!-- PREVIEW -->
+    <div class="inv-preview">
+      <div class="inv-header">
+        <div>
+          <div class="inv-brand">Swift<span>Scribe</span></div>
+          <div class="inv-brand-sub">hello@swiftscribe.com · +254 791 303 993<br>Nairobi, Kenya</div>
+        </div>
+        <div class="inv-meta">
+          <div class="inv-type">${d.type}</div>
+          <div class="inv-num">#${d.id}</div>
+        </div>
+      </div>
+      <div class="inv-parties">
+        <div>
+          <div class="inv-party-label">From</div>
+          <div class="inv-party-name">SwiftScribe</div>
+          <div class="inv-party-detail">hello@swiftscribe.com<br>Nairobi, Kenya</div>
+        </div>
+        <div>
+          <div class="inv-party-label">Bill To</div>
+          <div class="inv-party-name" id="prev-client">${d.clientName||'—'}</div>
+          <div class="inv-party-detail" id="prev-details">${d.clientEmail||''}${d.clientAddress?'<br>'+d.clientAddress:''}</div>
+        </div>
+      </div>
+      <div class="inv-dates">
+        <div class="inv-date-item"><span class="inv-date-label">Issue Date</span><span class="inv-date-val">${d.issueDate}</span></div>
+        <div class="inv-date-item"><span class="inv-date-label">Due Date</span><span class="inv-date-val">${d.dueDate}</span></div>
+        <div class="inv-date-item"><span class="inv-date-label">Status</span><span class="inv-date-val"><span class="badge badge-${d.status}">${d.status}</span></span></div>
+      </div>
+      <table class="items-table">
+        <thead><tr><th>Description</th><th style="text-align:right">Qty</th><th style="text-align:right">Rate</th><th style="text-align:right">Amount</th></tr></thead>
+        <tbody>${(d.items||[]).map(i=>`<tr>
+          <td><div class="item-desc">${i.desc||'—'}</div>${i.sub?'<div class="item-sub">'+i.sub+'</div>':''}</td>
+          <td style="text-align:right">${+i.qty||1}</td>
+          <td style="text-align:right">$${(+i.rate||0).toFixed(2)}</td>
+          <td style="text-align:right">$${((+i.qty||1)*(+i.rate||0)).toFixed(2)}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+      <div class="totals-section">
+        <div class="totals-box">
+          <div class="totals-row subtotal"><span>Subtotal</span><span>$${sub.toFixed(2)}</span></div>
+          ${d.taxEnabled?`<div class="totals-row tax"><span>VAT (${TAX}%)</span><span>$${tax.toFixed(2)}</span></div>`:''}
+          <div class="totals-row total"><span>Total Due</span><span style="color:var(--teal)">$${total.toFixed(2)}</span></div>
+        </div>
+      </div>
+      ${d.notes?`<div class="inv-notes"><strong>Notes:</strong> ${d.notes}</div>`:''}
+    </div>
+    <div class="inv-footer-strip">
+      <p>SwiftScribe · hello@swiftscribe.com · Nairobi, Kenya</p>
+      <span>Thank you for your business 🙏</span>
+    </div>
+
+    <!-- EDITOR -->
+    <div class="edit-section">
+      <div class="edit-section-title">Client Details</div>
+      <div class="form-grid">
+        <div class="form-group"><label>Client Name</label><input value="${d.clientName}" oninput="updateField('clientName',this.value);document.getElementById('prev-client').textContent=this.value||'—'" placeholder="Company or person name"/></div>
+        <div class="form-group"><label>Client Email</label><input type="email" value="${d.clientEmail}" oninput="updateField('clientEmail',this.value)" placeholder="client@email.com"/></div>
+        <div class="form-group full"><label>Client Address</label><input value="${d.clientAddress}" oninput="updateField('clientAddress',this.value)" placeholder="City, Country"/></div>
+        <div class="form-group"><label>Issue Date</label><input type="date" value="${d.issueDate}" oninput="updateField('issueDate',this.value)"/></div>
+        <div class="form-group"><label>Due Date</label><input type="date" value="${d.dueDate}" oninput="updateField('dueDate',this.value)"/></div>
+        <div class="form-group full"><label>Notes / Payment Terms</label><input value="${d.notes||''}" oninput="updateField('notes',this.value)" placeholder="e.g. Payment due in 14 days…"/></div>
+        <div class="form-group" style="flex-direction:row;align-items:center;gap:10px">
+          <input type="checkbox" id="tax-toggle" ${d.taxEnabled?'checked':''} onchange="toggleTax(this.checked)" style="width:auto"/>
+          <label for="tax-toggle" style="text-transform:none;letter-spacing:0;font-size:13px;color:var(--text)">Add 16% VAT</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="line-items-editor">
+      <div class="edit-section-title">Line Items</div>
+      <div class="li-head"><span>Description</span><span>Qty</span><span>Rate ($)</span><span>Amount</span><span></span></div>
+      <div id="line-items-wrap">${(d.items||[]).map((item,i)=>`
+        <div class="li-row" id="li-${i}">
+          <input class="li-input" placeholder="Service description" value="${item.desc}" oninput="updateItem(${i},'desc',this.value)"/>
+          <input class="li-input" type="number" min="1" value="${item.qty||1}" oninput="updateItem(${i},'qty',this.value)"/>
+          <input class="li-input" type="number" min="0" step="0.01" value="${item.rate||''}" placeholder="0.00" oninput="updateItem(${i},'rate',this.value)"/>
+          <input class="li-input" readonly value="$${((+item.qty||1)*(+item.rate||0)).toFixed(2)}" style="background:#FAFAFA;color:var(--muted)"/>
+          <button class="li-remove" onclick="removeItem(${i})">×</button>
+        </div>`).join('')}
+      </div>
+      <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="addItem()">+ Add line item</button>
+    </div>
+  </div>`;
+}
+
+function updateField(field, val) {
+  const d = docs.find(x=>x.id===currentDocId);
+  if (!d) return;
+  d[field] = val; saveDocs(); renderSidebar();
+}
+
+function toggleTax(val) {
+  updateField('taxEnabled', val);
+  const d = docs.find(x=>x.id===currentDocId);
+  if (d) renderEditor(d);
+}
+
+function updateItem(idx, field, val) {
+  const d = docs.find(x=>x.id===currentDocId);
+  if (!d || !d.items[idx]) return;
+  d.items[idx][field] = val;
+  const qty = +d.items[idx].qty||1, rate = +d.items[idx].rate||0;
+  d.items[idx].amount = qty*rate;
+  saveDocs();
+  // update amount display live
+  const row = document.getElementById('li-'+idx);
+  if (row) { const inputs = row.querySelectorAll('input'); if(inputs[3]) inputs[3].value='$'+(qty*rate).toFixed(2); }
+  // re-render totals in preview
+  const d2 = docs.find(x=>x.id===currentDocId);
+  const sub = subtotal(d2); const tax = d2.taxEnabled?sub*TAX/100:0; const total=sub+tax;
+  ['subtotal','tax-row','grand-total'].forEach(id=>{const el=document.getElementById(id);if(el){}});
+  renderSidebar();
+}
+
+function addItem() {
+  const d = docs.find(x=>x.id===currentDocId);
+  if (!d) return;
+  d.items.push({desc:'',sub:'',qty:1,rate:0,amount:0});
+  saveDocs(); renderEditor(d);
+}
+
+function removeItem(idx) {
+  const d = docs.find(x=>x.id===currentDocId);
+  if (!d || d.items.length<=1) return;
+  d.items.splice(idx,1); saveDocs(); renderEditor(d);
+}
+
+function deleteDoc(id) {
+  if (!confirm('Delete this document permanently?')) return;
+  docs = docs.filter(d=>d.id!==id); currentDocId = null; saveDocs();
+  renderSidebar();
+  document.getElementById('main-area').innerHTML = `<div class="empty-main"><div class="empty-main-icon">🧾</div><h3>Select or create a document</h3><div style="display:flex;gap:10px;margin-top:1rem"><button class="btn btn-outline" onclick="newDoc('invoice')">+ Invoice</button><button class="btn btn-green" onclick="newDoc('proposal')">+ Proposal</button></div></div>`;
+}
+
+function markSent(id) {
+  const d = docs.find(x=>x.id===id);
+  if (d && d.status==='draft') { d.status='sent'; saveDocs(); renderSidebar(); renderEditor(d); }
+  else alert('Document status updated. In a live version this would email the invoice to the client.');
+}
+
+renderSidebar();
+</script>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SwiftScribe — Client Portal</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--teal:#1D9E75;--teal-light:#E1F5EE;--teal-dark:#0F6E56;--bg:#F4F5F7;--card:#FFFFFF;--text:#1A1A18;--muted:#6B6B65;--hint:#9C9C96;--border:rgba(0,0,0,0.09);--border-mid:rgba(0,0,0,0.14);--radius:10px;--radius-lg:14px;--shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+.screen{display:none;min-height:100vh}.screen.active{display:block}
+/* AUTH */
+.auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem}
+.auth-box{background:var(--card);border-radius:16px;padding:2.5rem;width:380px;box-shadow:var(--shadow);border:0.5px solid var(--border)}
+.auth-logo{font-size:22px;font-weight:700;color:var(--text);margin-bottom:4px}.auth-logo span{color:var(--teal)}
+.auth-sub{font-size:13px;color:var(--muted);margin-bottom:2rem}
+.auth-tabs{display:flex;border:0.5px solid var(--border);border-radius:8px;margin-bottom:1.5rem;overflow:hidden}
+.auth-tab{flex:1;padding:8px;text-align:center;font-size:13px;cursor:pointer;transition:all .15s;color:var(--muted)}
+.auth-tab.active{background:var(--teal);color:#fff;font-weight:500}
+.inp{width:100%;padding:10px 14px;border:0.5px solid var(--border-mid);border-radius:var(--radius);font-size:14px;background:#fff;color:var(--text);margin-bottom:12px;font-family:inherit}
+.inp:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-light)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none}
+.btn-green{background:var(--teal);color:#fff}.btn-green:hover{background:var(--teal-dark)}
+.btn-outline{background:transparent;border:0.5px solid var(--border-mid);color:var(--text)}.btn-outline:hover{background:var(--bg)}
+.btn-sm{padding:7px 14px;font-size:12px}
+.err{color:#E53E3E;font-size:12px;margin-bottom:10px}
+/* PORTAL NAV */
+nav{background:#0F1A14;padding:0 2rem;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.nav-logo{font-size:17px;font-weight:700;color:#fff}.nav-logo span{color:#5DCAA5}
+.nav-links{display:flex;gap:4px}
+.nav-link{font-size:13px;color:rgba(255,255,255,0.55);padding:7px 12px;border-radius:8px;cursor:pointer;transition:all .15s}
+.nav-link:hover,.nav-link.active{color:#fff;background:rgba(255,255,255,0.08)}
+.nav-right{display:flex;align-items:center;gap:10px}
+.nav-user{font-size:13px;color:rgba(255,255,255,0.55)}
+.nav-avatar{width:32px;height:32px;background:var(--teal);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:600}
+/* LAYOUT */
+.portal-wrap{max-width:960px;margin:0 auto;padding:2rem}
+.page-title{font-size:20px;font-weight:600;letter-spacing:-.5px;margin-bottom:0.25rem}
+.page-sub{font-size:13px;color:var(--muted);margin-bottom:2rem}
+/* CARDS */
+.card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1.25rem}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+.card-title{font-size:15px;font-weight:600}
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem}
+.stat{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:1.25rem}
+.stat-num{font-size:26px;font-weight:700;letter-spacing:-1px}
+.stat-label{font-size:12px;color:var(--muted);margin-top:3px}
+/* ORDERS */
+.order-item{border:0.5px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:10px;background:#fff;transition:box-shadow .15s}
+.order-item:hover{box-shadow:var(--shadow)}
+.order-top{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:8px}
+.order-title{font-size:14px;font-weight:600}
+.order-meta{font-size:12px;color:var(--muted);margin-top:3px}
+.badge{font-size:11px;font-weight:500;padding:3px 10px;border-radius:12px;white-space:nowrap}
+.badge-done{background:#E1F5EE;color:#0F6E56}
+.badge-progress{background:#FFF3CD;color:#856404}
+.badge-pending{background:#E8F4FD;color:#0C5460}
+.badge-cancelled{background:#FFF5F5;color:#822727}
+.progress-bar{height:4px;background:#F0F0EE;border-radius:2px;margin-top:10px;overflow:hidden}
+.progress-fill{height:100%;background:var(--teal);border-radius:2px;transition:width .5s}
+/* ORDER FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.form-group{margin-bottom:1rem}
+.form-group.full{grid-column:1/-1}
+.form-group label{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 12px;border:0.5px solid var(--border-mid);border-radius:var(--radius);font-size:13px;background:#fff;color:var(--text);font-family:inherit}
+.form-group textarea{height:100px;resize:vertical}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-light)}
+.file-drop{border:2px dashed var(--border-mid);border-radius:var(--radius);padding:2rem;text-align:center;cursor:pointer;transition:all .15s;background:#FAFAF8}
+.file-drop:hover{border-color:var(--teal);background:var(--teal-light)}
+.file-drop-icon{font-size:28px;margin-bottom:8px}
+.file-drop-text{font-size:13px;color:var(--muted)}
+.file-drop-text span{color:var(--teal);font-weight:500}
+.selected-file{font-size:12px;color:var(--teal);margin-top:8px;font-weight:500}
+/* SERVICE PICKER */
+.service-picker{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem}
+.service-opt{border:0.5px solid var(--border-mid);border-radius:var(--radius);padding:1rem;cursor:pointer;transition:all .15s;text-align:center}
+.service-opt:hover{border-color:var(--teal)}
+.service-opt.selected{border-color:var(--teal);background:var(--teal-light)}
+.service-opt-icon{font-size:22px;margin-bottom:6px}
+.service-opt-name{font-size:13px;font-weight:500}
+.service-opt-price{font-size:11px;color:var(--muted);margin-top:2px}
+/* TABS */
+.tabs{display:flex;gap:4px;border-bottom:0.5px solid var(--border);margin-bottom:1.5rem}
+.tab{font-size:13px;padding:8px 16px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-0.5px;transition:all .15s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--teal);border-bottom-color:var(--teal);font-weight:500}
+.tab-pane{display:none}.tab-pane.active{display:block}
+.empty-state{text-align:center;padding:3rem;color:var(--hint)}
+.empty-state-icon{font-size:36px;margin-bottom:10px}
+.empty-state p{font-size:13px}
+.success-banner{background:var(--teal-light);border:0.5px solid var(--teal);border-radius:var(--radius);padding:1rem 1.25rem;display:none;align-items:center;gap:10px;margin-bottom:1.5rem;font-size:13px;color:var(--teal-dark)}
+.timeline{padding:0.5rem 0}
+.tl-item{display:flex;gap:12px;padding:8px 0;position:relative}
+.tl-item:not(:last-child)::after{content:'';position:absolute;left:11px;top:28px;bottom:-8px;width:1px;background:var(--border)}
+.tl-dot{width:22px;height:22px;border-radius:50%;background:var(--teal-light);border:2px solid var(--teal);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;margin-top:2px}
+.tl-dot.pending{background:#E8F4FD;border-color:#3182CE}
+.tl-dot.grey{background:#F0F0EE;border-color:#C0C0BC}
+.tl-text h4{font-size:13px;font-weight:500;color:var(--text)}
+.tl-text p{font-size:12px;color:var(--muted)}
+@media(max-width:640px){.form-grid{grid-template-columns:1fr}.service-picker{grid-template-columns:1fr}.stats-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div class="screen active" id="auth-screen">
+  <div class="auth-wrap">
+    <div class="auth-box">
+      <div class="auth-logo">Swift<span>Scribe</span> <span style="font-size:14px;font-weight:400;color:var(--muted)">Client Portal</span></div>
+      <div class="auth-sub">Manage your projects, track progress, submit new jobs</div>
+      <div class="auth-tabs">
+        <div class="auth-tab active" onclick="switchAuthTab('login',this)">Sign in</div>
+        <div class="auth-tab" onclick="switchAuthTab('register',this)">Create account</div>
+      </div>
+      <!-- LOGIN -->
+      <div id="login-form">
+        <div class="err" id="login-err"></div>
+        <input class="inp" type="email" id="li-email" placeholder="Email address"/>
+        <input class="inp" type="password" id="li-pass" placeholder="Password"/>
+        <button class="btn btn-green" style="width:100%" onclick="doLogin()">Sign in →</button>
+        <p style="font-size:11px;color:var(--hint);margin-top:12px;text-align:center">Demo: demo@swiftscribe.com / demo123</p>
+      </div>
+      <!-- REGISTER -->
+      <div id="register-form" style="display:none">
+        <div class="err" id="reg-err"></div>
+        <input class="inp" type="text" id="reg-name" placeholder="Full name"/>
+        <input class="inp" type="email" id="reg-email" placeholder="Email address"/>
+        <input class="inp" type="text" id="reg-company" placeholder="Company (optional)"/>
+        <input class="inp" type="password" id="reg-pass" placeholder="Password (min 6 chars)"/>
+        <button class="btn btn-green" style="width:100%" onclick="doRegister()">Create account →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PORTAL SCREEN -->
+<div class="screen" id="portal-screen">
+  <nav>
+    <div class="nav-logo">Swift<span>Scribe</span></div>
+    <div class="nav-links">
+      <div class="nav-link active" onclick="showPortalTab('dashboard',this)">Dashboard</div>
+      <div class="nav-link" onclick="showPortalTab('submit',this)">Submit Job</div>
+      <div class="nav-link" onclick="showPortalTab('orders',this)">My Orders</div>
+    </div>
+    <div class="nav-right">
+      <div class="nav-user" id="nav-username"></div>
+      <div class="nav-avatar" id="nav-avatar">?</div>
+      <button class="btn btn-outline btn-sm" style="color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.15)" onclick="doLogout()">Sign out</button>
+    </div>
+  </nav>
+
+  <!-- DASHBOARD TAB -->
+  <div class="tab-pane active" id="tab-dashboard">
+    <div class="portal-wrap">
+      <div class="page-title" id="welcome-msg">Welcome back</div>
+      <div class="page-sub">Here's an overview of your SwiftScribe projects</div>
+      <div class="stats-row">
+        <div class="stat"><div class="stat-num" id="my-total">0</div><div class="stat-label">Total orders</div></div>
+        <div class="stat"><div class="stat-num" id="my-active">0</div><div class="stat-label">In progress</div></div>
+        <div class="stat"><div class="stat-num" id="my-done">0</div><div class="stat-label">Completed</div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Recent Orders</div><button class="btn btn-outline btn-sm" onclick="showPortalTab('orders',null)">View all</button></div>
+        <div id="dash-order-list"></div>
+      </div>
+      <div class="card" style="background:linear-gradient(135deg,#0F1A14,#1D3A2A);border:none">
+        <div style="color:#5DCAA5;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Need help?</div>
+        <div style="color:#fff;font-size:16px;font-weight:600;margin-bottom:6px">Start a new project today</div>
+        <div style="color:rgba(255,255,255,.55);font-size:13px;margin-bottom:1.25rem">Submit a job and get a quote back in under 2 hours.</div>
+        <button class="btn btn-green" onclick="showPortalTab('submit',null)">Submit new job →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUBMIT TAB -->
+  <div class="tab-pane" id="tab-submit">
+    <div class="portal-wrap">
+      <div class="page-title">Submit a New Job</div>
+      <div class="page-sub">Fill in the details and we'll get back to you with a quote within 2 hours.</div>
+
+      <div class="success-banner" id="submit-success">
+        <span style="font-size:20px">✅</span>
+        <div><strong>Job submitted!</strong> We'll review your request and send a quote within 2 business hours.</div>
+      </div>
+
+      <div class="card" id="submit-form-wrap">
+        <div class="card-title" style="margin-bottom:1.25rem">1. Choose a service</div>
+        <div class="service-picker">
+          <div class="service-opt" onclick="selectService('Data Entry',this)">
+            <div class="service-opt-icon">📋</div>
+            <div class="service-opt-name">Data Entry</div>
+            <div class="service-opt-price">from $49</div>
+          </div>
+          <div class="service-opt" onclick="selectService('Copywriting',this)">
+            <div class="service-opt-icon">✍️</div>
+            <div class="service-opt-name">Copywriting</div>
+            <div class="service-opt-price">from $49</div>
+          </div>
+          <div class="service-opt" onclick="selectService('Transcription',this)">
+            <div class="service-opt-icon">🎙️</div>
+            <div class="service-opt-name">Transcription</div>
+            <div class="service-opt-price">from $49</div>
+          </div>
+        </div>
+
+        <div class="card-title" style="margin-bottom:1.25rem;margin-top:.5rem">2. Job details</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Job Title</label><input id="job-title" placeholder="e.g. Product catalog data entry"/></div>
+          <div class="form-group"><label>Deadline</label><input type="date" id="job-deadline"/></div>
+          <div class="form-group full"><label>Description</label><textarea id="job-desc" placeholder="Describe your project in detail — volume of work, format, any special instructions…"></textarea></div>
+          <div class="form-group full"><label>Upload File (optional)</label>
+            <div class="file-drop" onclick="document.getElementById('file-input').click()">
+              <div class="file-drop-icon">📁</div>
+              <div class="file-drop-text">Drag & drop or <span>browse</span> to upload</div>
+              <div class="file-drop-text" style="font-size:11px;margin-top:4px">Supports: PDF, DOCX, XLSX, MP3, MP4, CSV</div>
+              <div class="selected-file" id="selected-file-name"></div>
+            </div>
+            <input type="file" id="file-input" style="display:none" onchange="handleFile(this)"/>
+          </div>
+          <div class="form-group"><label>Budget (optional)</label>
+            <select id="job-budget">
+              <option value="">Not sure yet</option>
+              <option>$49 — Starter</option>
+              <option>$149 — Professional</option>
+              <option>$349 — Enterprise</option>
+              <option>Custom budget</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Priority</label>
+            <select id="job-priority">
+              <option>Standard (48 hrs)</option>
+              <option>Express (24 hrs)</option>
+              <option>Urgent (same day)</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-green" style="width:100%" onclick="submitJob()">Submit job request →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ORDERS TAB -->
+  <div class="tab-pane" id="tab-orders">
+    <div class="portal-wrap">
+      <div class="page-title">My Orders</div>
+      <div class="page-sub">Track the status of all your SwiftScribe projects</div>
+      <div class="tabs">
+        <div class="tab active" onclick="filterMyOrders('all',this)">All</div>
+        <div class="tab" onclick="filterMyOrders('pending',this)">Pending</div>
+        <div class="tab" onclick="filterMyOrders('progress',this)">In Progress</div>
+        <div class="tab" onclick="filterMyOrders('done',this)">Completed</div>
+      </div>
+      <div id="orders-list"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentUser = null;
+let selectedService = null;
+let myOrderFilter = 'all';
+
+const DEMO = { name:'Demo Client', email:'demo@swiftscribe.com', company:'Demo Co', pass:'demo123' };
+
+function getUsers() { return JSON.parse(localStorage.getItem('ss_portal_users')||'[]'); }
+function saveUsers(u) { localStorage.setItem('ss_portal_users', JSON.stringify(u)); }
+function getMyOrders() {
+  const all = JSON.parse(localStorage.getItem('ss_orders')||'[]');
+  return all.filter(o => o.email === currentUser?.email);
+}
+
+function switchAuthTab(tab, el) {
+  document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('login-form').style.display = tab==='login'?'block':'none';
+  document.getElementById('register-form').style.display = tab==='register'?'block':'none';
+}
+
+function doLogin() {
+  const email = document.getElementById('li-email').value.trim();
+  const pass = document.getElementById('li-pass').value.trim();
+  let user = null;
+  if (email === DEMO.email && pass === DEMO.pass) user = DEMO;
+  else {
+    const users = getUsers();
+    user = users.find(u => u.email === email && u.pass === pass);
+  }
+  if (!user) { document.getElementById('login-err').textContent = 'Incorrect email or password.'; return; }
+  currentUser = user; enterPortal();
+}
+
+function doRegister() {
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pass = document.getElementById('reg-pass').value.trim();
+  const company = document.getElementById('reg-company').value.trim();
+  if (!name || !email || pass.length < 6) { document.getElementById('reg-err').textContent = 'Please fill all fields (password min 6 chars).'; return; }
+  const users = getUsers();
+  if (users.find(u=>u.email===email)) { document.getElementById('reg-err').textContent = 'Email already registered. Sign in instead.'; return; }
+  const u = {name, email, pass, company}; users.push(u); saveUsers(users);
+  currentUser = u; enterPortal();
+}
+
+function enterPortal() {
+  document.getElementById('auth-screen').classList.remove('active');
+  document.getElementById('portal-screen').classList.add('active');
+  document.getElementById('nav-username').textContent = currentUser.name.split(' ')[0];
+  document.getElementById('nav-avatar').textContent = currentUser.name[0].toUpperCase();
+  document.getElementById('welcome-msg').textContent = 'Welcome back, ' + currentUser.name.split(' ')[0] + ' 👋';
+  refreshPortal();
+}
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('portal-screen').classList.remove('active');
+  document.getElementById('auth-screen').classList.add('active');
+}
+
+function showPortalTab(name, el) {
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if (el) el.classList.add('active');
+  refreshPortal();
+}
+
+function refreshPortal() {
+  const orders = getMyOrders();
+  document.getElementById('my-total').textContent = orders.length;
+  document.getElementById('my-active').textContent = orders.filter(o=>o.status==='progress').length;
+  document.getElementById('my-done').textContent = orders.filter(o=>o.status==='done').length;
+  renderDashOrders(orders); renderOrdersList(orders);
+}
+
+function renderDashOrders(orders) {
+  const el = document.getElementById('dash-order-list');
+  const show = orders.slice(-3).reverse();
+  if (!show.length) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>No orders yet. Submit your first job!</p></div>'; return; }
+  el.innerHTML = show.map(o => orderCard(o)).join('');
+}
+
+function renderOrdersList(orders) {
+  const el = document.getElementById('orders-list');
+  const show = myOrderFilter === 'all' ? orders : orders.filter(o=>o.status===myOrderFilter);
+  if (!show.length) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>No orders in this category yet.</p></div>'; return; }
+  el.innerHTML = show.slice().reverse().map(o => orderCard(o, true)).join('');
+}
+
+function orderCard(o, detailed=false) {
+  const prog = {pending:15,progress:55,done:100,cancelled:0}[o.status]||0;
+  const badge = `<span class="badge badge-${o.status==='done'?'done':o.status==='progress'?'progress':o.status==='cancelled'?'cancelled':'pending'}">${statusLabel(o.status)}</span>`;
+  return `<div class="order-item">
+    <div class="order-top">
+      <div><div class="order-title">${o.desc||o.service+' Project'}</div><div class="order-meta">${o.service} · $${(+o.amount||0)||'Quote pending'} · ${o.date}</div></div>
+      ${badge}
+    </div>
+    ${detailed ? `<div class="progress-bar"><div class="progress-fill" style="width:${prog}%"></div></div>
+    <div style="font-size:11px;color:var(--muted);margin-top:6px">${prog}% complete</div>` : ''}
+    ${detailed && o.status==='done' ? `<div style="margin-top:10px"><span class="btn btn-outline btn-sm">⬇ Download deliverable</span></div>` : ''}
+  </div>`;
+}
+
+function filterMyOrders(f, el) {
+  myOrderFilter = f;
+  document.querySelectorAll('.tabs .tab').forEach(t=>t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderOrdersList(getMyOrders());
+}
+
+function statusLabel(s) { return {pending:'Pending Review',progress:'In Progress',done:'Completed',cancelled:'Cancelled'}[s]||s; }
+
+function selectService(name, el) {
+  document.querySelectorAll('.service-opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected'); selectedService = name;
+}
+
+function handleFile(input) {
+  const f = input.files[0];
+  if (f) document.getElementById('selected-file-name').textContent = '✓ ' + f.name;
+}
+
+function submitJob() {
+  const title = document.getElementById('job-title').value.trim();
+  const desc = document.getElementById('job-desc').value.trim();
+  if (!selectedService) { alert('Please choose a service.'); return; }
+  if (!title) { alert('Please enter a job title.'); return; }
+  const orders = JSON.parse(localStorage.getItem('ss_orders')||'[]');
+  orders.push({
+    id: Date.now(), client: currentUser.name, email: currentUser.email,
+    service: selectedService, desc: title + (desc?' — '+desc.slice(0,60):''),
+    amount: '', status: 'pending', date: new Date().toISOString().slice(0,10),
+    priority: document.getElementById('job-priority').value,
+    budget: document.getElementById('job-budget').value
+  });
+  localStorage.setItem('ss_orders', JSON.stringify(orders));
+  document.getElementById('submit-form-wrap').style.display = 'none';
+  document.getElementById('submit-success').style.display = 'flex';
+  setTimeout(() => {
+    document.getElementById('submit-form-wrap').style.display = 'block';
+    document.getElementById('submit-success').style.display = 'none';
+    document.getElementById('job-title').value = '';
+    document.getElementById('job-desc').value = '';
+    document.getElementById('selected-file-name').textContent = '';
+    document.querySelectorAll('.service-opt').forEach(o=>o.classList.remove('selected'));
+    selectedService = null;
+  }, 4000);
+  refreshPortal();
+}
+
+document.getElementById('li-pass').addEventListener('keyup', e => { if(e.key==='Enter') doLogin(); });
+const today = new Date().toISOString().slice(0,10);
+document.getElementById('job-deadline').min = today;
+</script>
+</body>
+</html>
+
+/admin      /swiftscribe-admin.html     200
+/portal     /swiftscribe-portal.html    200
+/invoices   /swiftscribe-invoices.html  200
