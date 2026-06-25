@@ -1,6 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function() {
+  const SUPABASE_URL = 'https://hbfhawofcbmgtogqgmah.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_2Bf8rNxdWOnwE4kZ8HmiWg_mExzONOv';
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+  sb.auth.getSession().then(({ data }) => {
+    if (!data.session) {
+      window.location.href = 'auth.html';
+      return;
+    }
+    if (data.session.user.email !== 'nel45090@gmail.com') {
+      window.location.href = 'swiftscribe-portal.html';
+    }
+  });
+})();
+</script>
+
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>SwiftScribe — Invoice & Proposal Generator</title>
 <style>
@@ -111,6 +131,8 @@ nav{background:#0F1A14;padding:0 2rem;height:56px;display:flex;align-items:cente
 </style>
 </head>
 <body>
+
+
 <nav>
   <div style="display:flex;align-items:center">
     <div class="nav-logo">Swift<span>Scribe</span></div>
@@ -392,5 +414,28 @@ function markSent(id) {
 
 renderSidebar();
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const _sb = (() => {
+  const { createClient } = supabase;
+  return createClient('https://hbfhawofcbmgtogqgmah.supabase.co','sb_publishable_2Bf8rNxdWOnwE4kZ8HmiWg_mExzONOv');
+})();
+
+async function signOut() {
+  await _sb.auth.signOut();
+  window.location.href = 'auth.html';
+}
+
+// Show user name
+_sb.auth.getSession().then(({ data }) => {
+  if (data.session) {
+    const name = data.session.user.user_metadata?.full_name || data.session.user.email.split('@')[0];
+    const el = document.getElementById('user-display');
+    if (el) el.textContent = name;
+  }
+});
+</script>
+
 </body>
 </html>

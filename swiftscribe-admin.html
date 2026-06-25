@@ -1,6 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function() {
+  const SUPABASE_URL = 'https://hbfhawofcbmgtogqgmah.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_2Bf8rNxdWOnwE4kZ8HmiWg_mExzONOv';
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+  sb.auth.getSession().then(({ data }) => {
+    if (!data.session) {
+      window.location.href = 'auth.html';
+      return;
+    }
+    if (data.session.user.email !== 'nel45090@gmail.com') {
+      window.location.href = 'swiftscribe-portal.html';
+    }
+  });
+})();
+</script>
+
 <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>SwiftScribe — Admin Dashboard</title>
 <style>
@@ -75,6 +95,8 @@ tr:hover td{background:#FAFAF8}
 </style>
 </head>
 <body>
+
+
 
 <!-- LOGIN -->
 <div class="login-screen" id="login-screen">
@@ -395,5 +417,28 @@ function showView(name, el) {
 
 document.getElementById('li-pass').addEventListener('keyup', e => { if(e.key==='Enter') doLogin(); });
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const _sb = (() => {
+  const { createClient } = supabase;
+  return createClient('https://hbfhawofcbmgtogqgmah.supabase.co','sb_publishable_2Bf8rNxdWOnwE4kZ8HmiWg_mExzONOv');
+})();
+
+async function signOut() {
+  await _sb.auth.signOut();
+  window.location.href = 'auth.html';
+}
+
+// Show user name
+_sb.auth.getSession().then(({ data }) => {
+  if (data.session) {
+    const name = data.session.user.user_metadata?.full_name || data.session.user.email.split('@')[0];
+    const el = document.getElementById('user-display');
+    if (el) el.textContent = name;
+  }
+});
+</script>
+
 </body>
 </html>

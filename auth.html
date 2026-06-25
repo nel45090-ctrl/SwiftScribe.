@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SwiftScribe — Login / Sign Up</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --teal: #1D9E75; --teal-light: #E1F5EE; --teal-dark: #0F6E56;
+    --bg: #FAFAF8; --text: #1A1A18; --text-muted: #6B6B65;
+    --border: rgba(0,0,0,0.12); --radius: 10px;
+  }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+  .card { background: white; border-radius: 16px; padding: 2.5rem; width: 100%; max-width: 420px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+  .logo { font-size: 22px; font-weight: 700; text-align: center; margin-bottom: 0.25rem; }
+  .logo span { color: var(--teal); }
+  .tagline { text-align: center; font-size: 13px; color: var(--text-muted); margin-bottom: 2rem; }
+  .tabs { display: flex; background: #F4F2EC; border-radius: 10px; padding: 4px; margin-bottom: 1.75rem; }
+  .tab { flex: 1; padding: 9px; text-align: center; font-size: 14px; font-weight: 500; border-radius: 8px; cursor: pointer; color: var(--text-muted); transition: all 0.15s; border: none; background: transparent; }
+  .tab.active { background: white; color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+  .form-group { margin-bottom: 1rem; }
+  label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 5px; }
+  input { width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 14px; font-family: inherit; transition: border-color 0.15s; }
+  input:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(29,158,117,0.1); }
+  .btn { width: 100%; padding: 12px; border-radius: var(--radius); border: none; background: var(--teal); color: white; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 0.5rem; transition: background 0.15s; }
+  .btn:hover { background: var(--teal-dark); }
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .msg { font-size: 13px; text-align: center; margin-top: 1rem; padding: 10px; border-radius: 8px; display: none; }
+  .msg.success { background: var(--teal-light); color: var(--teal-dark); display: block; }
+  .msg.error { background: #fdecea; color: #c62828; display: block; }
+  .divider { text-align: center; font-size: 12px; color: var(--text-muted); margin: 1.25rem 0; position: relative; }
+  .divider::before, .divider::after { content: ''; position: absolute; top: 50%; width: 42%; height: 0.5px; background: var(--border); }
+  .divider::before { left: 0; }
+  .divider::after { right: 0; }
+  .back-link { text-align: center; margin-top: 1.5rem; font-size: 13px; color: var(--text-muted); }
+  .back-link a { color: var(--teal); text-decoration: none; font-weight: 500; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">Swift<span>Scribe</span></div>
+  <div class="tagline">Data Entry · Copywriting · Transcription</div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('login')">Sign In</button>
+    <button class="tab" onclick="switchTab('signup')">Create Account</button>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="panel active" id="panel-login">
+    <div class="form-group">
+      <label>Email address</label>
+      <input type="email" id="login-email" placeholder="you@example.com" />
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="Your password" />
+    </div>
+    <button class="btn" onclick="handleLogin()">Sign In →</button>
+    <div class="msg" id="login-msg"></div>
+    <div class="divider">or</div>
+    <div style="text-align:center; font-size:13px; color:var(--text-muted);">
+      Don't have an account? <a href="#" onclick="switchTab('signup')" style="color:var(--teal);font-weight:500;">Sign up free</a>
+    </div>
+  </div>
+
+  <!-- SIGNUP -->
+  <div class="panel" id="panel-signup">
+    <div class="form-group">
+      <label>Full name</label>
+      <input type="text" id="signup-name" placeholder="Jane Smith" />
+    </div>
+    <div class="form-group">
+      <label>Email address</label>
+      <input type="email" id="signup-email" placeholder="you@example.com" />
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="signup-password" placeholder="Min. 6 characters" />
+    </div>
+    <button class="btn" onclick="handleSignup()">Create Account →</button>
+    <div class="msg" id="signup-msg"></div>
+    <div class="divider">or</div>
+    <div style="text-align:center; font-size:13px; color:var(--text-muted);">
+      Already have an account? <a href="#" onclick="switchTab('login')" style="color:var(--teal);font-weight:500;">Sign in</a>
+    </div>
+  </div>
+
+  <div class="back-link"><a href="index.html">← Back to SwiftScribe</a></div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://hbfhawofcbmgtogqgmah.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_2Bf8rNxdWOnwE4kZ8HmiWg_mExzONOv';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (tab==='login'&&i===0)||(tab==='signup'&&i===1)));
+  document.getElementById('panel-login').classList.toggle('active', tab==='login');
+  document.getElementById('panel-signup').classList.toggle('active', tab==='signup');
+}
+
+function showMsg(id, text, type) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = 'msg ' + type;
+}
+
+async function handleLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!email || !password) { showMsg('login-msg', 'Please fill in all fields.', 'error'); return; }
+  const btn = document.querySelector('#panel-login .btn');
+  btn.disabled = true; btn.textContent = 'Signing in...';
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  btn.disabled = false; btn.textContent = 'Sign In →';
+  if (error) { showMsg('login-msg', error.message, 'error'); return; }
+  // Check if admin
+  if (email === 'nel45090@gmail.com') {
+    window.location.href = 'swiftscribe-admin.html';
+  } else {
+    window.location.href = 'swiftscribe-portal.html';
+  }
+}
+
+async function handleSignup() {
+  const name = document.getElementById('signup-name').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const password = document.getElementById('signup-password').value;
+  if (!name || !email || !password) { showMsg('signup-msg', 'Please fill in all fields.', 'error'); return; }
+  if (password.length < 6) { showMsg('signup-msg', 'Password must be at least 6 characters.', 'error'); return; }
+  const btn = document.querySelector('#panel-signup .btn');
+  btn.disabled = true; btn.textContent = 'Creating account...';
+  const { data, error } = await sb.auth.signUp({ email, password, options: { data: { full_name: name } } });
+  btn.disabled = false; btn.textContent = 'Create Account →';
+  if (error) { showMsg('signup-msg', error.message, 'error'); return; }
+  showMsg('signup-msg', '✅ Account created! Check your email to confirm, then sign in.', 'success');
+}
+
+// Auto redirect if already logged in
+sb.auth.getSession().then(({ data }) => {
+  if (data.session) {
+    const email = data.session.user.email;
+    window.location.href = email === 'nel45090@gmail.com' ? 'swiftscribe-admin.html' : 'swiftscribe-portal.html';
+  }
+});
+</script>
+</body>
+</html>
