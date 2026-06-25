@@ -105,9 +105,9 @@ tr:hover td{background:#FAFAF8}
     <div class="login-sub">Admin Dashboard — sign in to continue</div>
     <input class="inp" type="text" id="li-user" placeholder="Username" value="admin"/>
     <input class="inp" type="password" id="li-pass" placeholder="Password" />
-    <div class="err" id="li-err">Incorrect credentials. Try admin / admin123</div>
+    <div class="err" id="li-err">Incorrect email or password. Please try again.</div>
     <button class="btn btn-green" style="width:100%;justify-content:center" onclick="doLogin()">Sign in →</button>
-    <p style="font-size:11px;color:var(--hint);margin-top:12px;text-align:center">Default: admin / admin123</p>
+    
   </div>
 </div>
 
@@ -245,7 +245,7 @@ tr:hover td{background:#FAFAF8}
 </div>
 
 <script>
-const PASS = 'admin123'; const USER = 'admin';
+// Auth handled by Supabase
 let orders = [], contacts = [], waitlist = [];
 
 function doLogin() {
