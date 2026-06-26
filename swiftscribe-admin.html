@@ -96,6 +96,26 @@ tr:hover td{background:#FAFAF8}
 </head>
 <body>
 
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+const sb = createClient('https://hbfhawofcbmgtogqgmah.supabase.co','sb_publishable_2Bf8rNxdWOnwE4kZ8HmiWg_mExzONOv');
+const { data } = await sb.auth.getSession();
+if (!data.session) { window.location.href = 'auth.html'; }
+else if (data.session.user.email !== 'nel45090@gmail.com') { window.location.href = 'swiftscribe-portal.html'; }
+else {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  const name = data.session.user.user_metadata?.full_name || 'Admin';
+  const el = document.getElementById('admin-name');
+  if(el) el.textContent = name;
+}
+window.signOut = async function() {
+  await sb.auth.signOut();
+  window.location.href = 'auth.html';
+}
+</script>
+
+
 
 
 <!-- LOGIN -->
@@ -248,14 +268,7 @@ tr:hover td{background:#FAFAF8}
 // Auth handled by Supabase
 let orders = [], contacts = [], waitlist = [];
 
-function doLogin() {
-  const u = document.getElementById('li-user').value.trim();
-  const p = document.getElementById('li-pass').value.trim();
-  if (u === USER && p === PASS) {
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    loadData(); refreshAll();
-  } else {
+ else {
     document.getElementById('li-err').style.display = 'block';
   }
 }
