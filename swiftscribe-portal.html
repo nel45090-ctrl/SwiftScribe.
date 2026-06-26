@@ -9,9 +9,10 @@
   const SUPABASE_KEY = 'sb_publishable_2Bf8rNxdWOnwE4kZ8HmiWg_mExzONOv';
   const { createClient } = supabase;
   const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
-  sb.auth.getSession().then(({ data }) => {
+  const portalTimeout = setTimeout(() => { clearTimeout(portalTimeout); window.location.href = 'auth.html'; }, 5000);
+sb.auth.getSession().then(({ data }) => {
     if (!data.session) {
-      window.location.href = 'auth.html';
+      clearTimeout(portalTimeout); window.location.href = 'auth.html';
     }
   });
 })();
@@ -440,11 +441,12 @@ const _sb = (() => {
 
 async function signOut() {
   await _sb.auth.signOut();
-  window.location.href = 'auth.html';
+  clearTimeout(portalTimeout); window.location.href = 'auth.html';
 }
 
 // Show user name
-_sb.auth.getSession().then(({ data }) => {
+_const portalTimeout = setTimeout(() => { clearTimeout(portalTimeout); window.location.href = 'auth.html'; }, 5000);
+sb.auth.getSession().then(({ data }) => {
   if (data.session) {
     const name = data.session.user.user_metadata?.full_name || data.session.user.email.split('@')[0];
     const el = document.getElementById('user-display');

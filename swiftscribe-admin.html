@@ -235,7 +235,13 @@ const _sb = createClient(
   'sb_publishable_2Bf8rNxdWOnwE4kZ8HmiWg_mExzONOv'
 );
 
+// Add timeout so it never hangs forever
+const authTimeout = setTimeout(() => {
+  window.location.href = 'auth.html';
+}, 5000);
+
 _sb.auth.getSession().then(({ data }) => {
+  clearTimeout(authTimeout);
   if (!data.session) {
     window.location.href = 'auth.html';
     return;
@@ -244,11 +250,14 @@ _sb.auth.getSession().then(({ data }) => {
     window.location.href = 'swiftscribe-portal.html';
     return;
   }
-  // Show app, hide login
+  // Show app, hide login screen
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   loadData();
   refreshAll();
+}).catch(() => {
+  clearTimeout(authTimeout);
+  window.location.href = 'auth.html';
 });
 
 function logout() {

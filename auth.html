@@ -145,6 +145,9 @@
   // Auto redirect if already logged in
   sb.auth.getSession().then(({ data }) => {
     if (data.session) goTo(data.session.user.email);
+  }).catch(() => {
+    // Session check failed - stay on login page
+    console.log('Session check failed, staying on login');
   });
 </script>
 </body>
