@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>SwiftScribe — Data Entry, Copywriting & Transcription</title>
-<script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<!-- anime.js removed -->
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -706,7 +706,7 @@
 </div>
 
 <!-- PAYPAL SDK — uses your PayPal email as merchant ID -->
-<script src="https://www.paypal.com/sdk/js?client-id=AUcXoFzEPFzyMu3IMYFVl12B93exAUNzHbg63vuoH_iFLrwN5tnrF3505ddDLibUiJlPuQEesLNmD7Ou&currency=USD"></script>
+<!-- PayPal loaded dynamically when pricing page is opened -->
 
 <script>
 const WA_NUMBER = '254791303993';
@@ -824,10 +824,20 @@ document.addEventListener('click', function(e) {
 
 /* ── PAYPAL ── */
 function initPayPal() {
-  if (typeof paypal === 'undefined') {
-    console.warn('PayPal SDK not loaded — clients can still use M-Pesa or request invoice.');
+  if (typeof paypal !== 'undefined') {
+    loadPayPalButtons();
     return;
   }
+  // Load PayPal SDK dynamically
+  const script = document.createElement('script');
+  script.src = 'https://www.paypal.com/sdk/js?client-id=AUcXoFzEPFzyMu3IMYFVl12B93exAUNzHbg63vuoH_iFLrwN5tnrF3505ddDLibUiJlPuQEesLNmD7Ou&currency=USD';
+  script.onload = loadPayPalButtons;
+  script.onerror = () => console.warn('PayPal SDK failed to load');
+  document.head.appendChild(script);
+}
+
+function loadPayPalButtons() {
+  if (window.paypalLoaded) return;
   window.paypalLoaded = true;
   const plans = [
     { id: 'paypal-starter',    amount: '49.00',  label: 'Starter Plan'      },
