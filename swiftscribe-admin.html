@@ -1,26 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-(function() {
-  const SUPABASE_URL = 'https://hbfhawofcbmgtogqgmah.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_2Bf8rNxdWOnwE4kZ8HmiWg_mExzONOv';
-  const { createClient } = supabase;
-  const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
-  sb.auth.getSession().then(({ data }) => {
-    if (!data.session) {
-      window.location.href = 'auth.html';
-      return;
-    }
-    if (data.session.user.email !== 'nel45090@gmail.com') {
-      window.location.href = 'swiftscribe-portal.html';
-    }
-  });
-})();
-</script>
-
 <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>SwiftScribe — Admin Dashboard</title>
 <style>
@@ -96,28 +76,6 @@ tr:hover td{background:#FAFAF8}
 </head>
 <body>
 
-<script type="module">
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-const sb = createClient('https://hbfhawofcbmgtogqgmah.supabase.co','sb_publishable_2Bf8rNxdWOnwE4kZ8HmiWg_mExzONOv');
-const { data } = await sb.auth.getSession();
-if (!data.session) { window.location.href = 'auth.html'; }
-else if (data.session.user.email !== 'nel45090@gmail.com') { window.location.href = 'swiftscribe-portal.html'; }
-else {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'flex';
-  const name = data.session.user.user_metadata?.full_name || 'Admin';
-  const el = document.getElementById('admin-name');
-  if(el) el.textContent = name;
-}
-window.signOut = async function() {
-  await sb.auth.signOut();
-  window.location.href = 'auth.html';
-}
-</script>
-
-
-
-
 <!-- LOGIN -->
 <div class="login-screen" id="login-screen">
   <div class="login-box">
@@ -125,9 +83,9 @@ window.signOut = async function() {
     <div class="login-sub">Admin Dashboard — sign in to continue</div>
     <input class="inp" type="text" id="li-user" placeholder="Username" value="admin"/>
     <input class="inp" type="password" id="li-pass" placeholder="Password" />
-    <div class="err" id="li-err">Incorrect email or password. Please try again.</div>
+    <div class="err" id="li-err">Incorrect credentials. Try admin / admin123</div>
     <button class="btn btn-green" style="width:100%;justify-content:center" onclick="doLogin()">Sign in →</button>
-    
+    <p style="font-size:11px;color:var(--hint);margin-top:12px;text-align:center">Default: admin / admin123</p>
   </div>
 </div>
 
@@ -213,7 +171,7 @@ window.signOut = async function() {
     <div class="view" id="view-contacts">
       <div class="section-card">
         <div class="section-card-head"><h2>Contact Leads</h2><input class="search-bar" placeholder="Search…" oninput="renderContacts(this.value)"/></div>
-        <table><thead><tr><th>Name</th><th>Email</th><th>Company</th><th>Service</th><th>Message</th><th>Date</th></tr></thead>
+        <table><thead><tr><th>Name</th><th>Email</th>hello@swiftscribe.com<th>Company</th>SwiftScribe<th>Service</th><th>Message</th><th>Date</th></tr></thead>
         <tbody id="contacts-body"></tbody></table>
       </div>
     </div>
@@ -264,15 +222,51 @@ window.signOut = async function() {
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
 <script>
-// Auth handled by Supabase
+const PASS = 'admin123'; const USER = 'admin';
 let orders = [], contacts = [], waitlist = [];
 
- else {
+
+// ── SUPABASE AUTH ──
+const { createClient } = supabase;
+const _sb = createClient(
+  'https://hbfhawofcbmgtogqgmah.supabase.co',
+  'sb_publishable_2Bf8rNxdWOnwE4kZ8HmiWg_mExzONOv'
+);
+
+_sb.auth.getSession().then(({ data }) => {
+  if (!data.session) {
+    window.location.href = 'auth.html';
+    return;
+  }
+  if (data.session.user.email !== 'nel45090@gmail.com') {
+    window.location.href = 'swiftscribe-portal.html';
+    return;
+  }
+  // Show app, hide login
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadData();
+  refreshAll();
+});
+
+function logout() {
+  _sb.auth.signOut().then(() => { window.location.href = 'auth.html'; });
+}
+
+function doLogin() {
+  const u = document.getElementById('li-user').value.trim();
+  const p = document.getElementById('li-pass').value.trim();
+  if (u === USER && p === PASS) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadData(); refreshAll();
+  } else {
     document.getElementById('li-err').style.display = 'block';
   }
 }
-document.getElementById('li-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+// login handled by Supabase
 
 function logout() { document.getElementById('app').style.display='none'; document.getElementById('login-screen').style.display='flex'; }
 
@@ -428,30 +422,7 @@ function showView(name, el) {
   refreshAll();
 }
 
-document.getElementById('li-pass').addEventListener('keyup', e => { if(e.key==='Enter') doLogin(); });
+// login handled by Supabase
 </script>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-const _sb = (() => {
-  const { createClient } = supabase;
-  return createClient('https://hbfhawofcbmgtogqgmah.supabase.co','sb_publishable_2Bf8rNxdWOnwE4kZ8HmiWg_mExzONOv');
-})();
-
-async function signOut() {
-  await _sb.auth.signOut();
-  window.location.href = 'auth.html';
-}
-
-// Show user name
-_sb.auth.getSession().then(({ data }) => {
-  if (data.session) {
-    const name = data.session.user.user_metadata?.full_name || data.session.user.email.split('@')[0];
-    const el = document.getElementById('user-display');
-    if (el) el.textContent = name;
-  }
-});
-</script>
-
 </body>
 </html>
